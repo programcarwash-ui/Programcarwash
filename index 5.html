@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SURE 88 Car wash & Detailing - จองคิวออนไลน์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style> 
+        body { font-family: 'Outfit', sans-serif; background-color: #0b0f19; }
+        .neon-glow { box-shadow: 0 0 30px rgba(245, 158, 11, 0.15); }
+        .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    </style>
+</head>
+<body class="text-white min-h-screen flex justify-center items-center p-4 md:p-6">
+
+    <!-- CUSTOM MODAL POPUP -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-zinc-900 border border-amber-500/30 w-full max-w-md rounded-3xl p-8 text-center neon-glow transform transition-all scale-95 opacity-0 duration-300" id="modal-box">
+            <div id="modal-icon" class="text-5xl mb-4">⚠️</div>
+            <h3 id="modal-title" class="text-xl font-bold text-amber-400 mb-2">แจ้งเตือน</h3>
+            <p id="modal-message" class="text-base text-zinc-300 mb-8 leading-relaxed">ข้อความแจ้งเตือนจะแสดงตรงนี้</p>
+            <button onclick="closeModal()" class="w-full gold-gradient text-zinc-950 font-bold py-4 rounded-2xl text-base shadow-xl hover:opacity-90 transition-all">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <div class="w-full max-w-2xl bg-zinc-900/90 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-2xl border border-zinc-800 neon-glow relative overflow-hidden space-y-6">
+        
+        <!-- แถบสถานะร้าน -->
+        <div id="shop-status-banner" class="p-3.5 rounded-2xl text-center text-sm font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center gap-3">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            สถานะร้าน: เปิดให้บริการปกติ
+        </div>
+
+        <!-- โลโก้และชื่อร้าน -->
+        <div class="text-center space-y-2">
+            <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-amber-400 via-orange-300 to-amber-500 bg-clip-text text-transparent">SURE 88</h1>
+            <p class="text-sm md:text-base text-zinc-400 tracking-wider uppercase font-medium">Car wash & Detailing - ระบบจองคิวอัจฉริยะ</p>
+        </div>
+
+        <!-- AUTH VIEW: ลงทะเบียน / เข้าสู่ระบบ -->
+        <div id="view-auth" class="space-y-6">
+            <div class="flex bg-zinc-950 p-1.5 rounded-2xl border border-zinc-800">
+                <button onclick="switchTab('login')" id="tab-login" class="flex-1 py-3 text-sm font-bold rounded-xl gold-gradient text-zinc-950 transition-all shadow-lg">เข้าสู่ระบบ</button>
+                <button onclick="switchTab('register')" id="tab-register" class="flex-1 py-3 text-sm font-bold rounded-xl text-zinc-400 transition-all hover:text-white">สมัครสมาชิก</button>
+            </div>
+
+            <!-- ฟอร์มเข้าสู่ระบบ -->
+            <div id="form-login" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm text-zinc-300 font-medium">เบอร์มือถือ หรือ รหัสลูกค้า (CUS-XXXX)</label>
+                    <input type="text" id="login-input" placeholder="0812345678 หรือ CUS-1025" class="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white focus:border-amber-500 outline-none text-base transition-all">
+                </div>
+                <button onclick="handleLogin()" class="w-full gold-gradient hover:opacity-90 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-xl text-base mt-2">
+                    เข้าสู่ระบบ &rarr;
+                </button>
+            </div>
+
+            <!-- ฟอร์มสมัครสมาชิก -->
+            <div id="form-register" class="space-y-4 hidden">
+                <div class="space-y-2">
+                    <label class="text-sm text-zinc-300 font-medium">เบอร์มือถือ</label>
+                    <input type="tel" id="reg-phone" placeholder="0812345678" class="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white focus:border-amber-500 outline-none text-base transition-all">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm text-zinc-300 font-medium">ชื่อ-นามสกุล</label>
+                    <input type="text" id="reg-name" placeholder="คุณสมชาย ใจดี" class="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white focus:border-amber-500 outline-none text-base transition-all">
+                </div>
+                <button onclick="handleRegister()" class="w-full gold-gradient hover:opacity-90 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-xl text-base mt-2">
+                    ยืนยันการสมัคร &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 1: เลือกรถและบริการ -->
+        <div id="step-1" class="space-y-6 hidden">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h2 class="text-sm md:text-base font-bold text-amber-400 tracking-wider uppercase">ข้อมูลรถ & แพ็กเกจบริการ</h2>
+                <span id="welcome-user" class="text-xs md:text-sm text-zinc-400 font-medium"></span>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm text-zinc-300 font-medium">ขนาดรถ / ไซส์</label>
+                <select id="car-size" onchange="updatePrices()" class="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white text-base outline-none focus:border-amber-500 cursor-pointer">
+                    <option value="S">ไซส์ S (Ecocar / City Car เช่น Yaris, City)</option>
+                    <option value="M" selected>ไซส์ M (Sedan ทั่วไป / Compact เช่น Civic, Altis)</option>
+                    <option value="L">ไซส์ L (SUV / PPV / กระบะ 4 ประตู เช่น Fortuner, CR-V)</option>
+                    <option value="XL">ไซส์ XL (SUV ขนาดใหญ่ / รถตู้ เช่น Alphard, Commuter)</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-sm text-zinc-300 font-medium">รุ่นรถ (ระบุเพิ่มเติม)</label>
+                    <input type="text" id="car-model" placeholder="เช่น Honda Civic" class="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white text-base outline-none focus:border-amber-500">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm text-zinc-300 font-medium">สีรถ</label>
+                    <input type="text" id="car-color" placeholder="สีดำ / ขาวมุก" class="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white text-base outline-none focus:border-amber-500">
+                </div>
+            </div>
+            
+            <div class="space-y-2">
+                <label class="text-sm text-zinc-300 font-medium">ป้ายทะเบียนรถ</label>
+                <input type="text" id="car-plate" placeholder="1กข 1234 กทม" class="w-full p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white text-base outline-none focus:border-amber-500">
+            </div>
+
+            <div class="space-y-3">
+                <label class="text-sm text-zinc-300 font-medium block">เลือกบริการ (ราคาปรับตามไซส์รถ)</label>
+                <div class="space-y-3">
+                    <label class="flex justify-between items-center p-4 bg-zinc-950 border border-zinc-800 rounded-2xl cursor-pointer hover:border-amber-500/50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="service" value="ล้างสี ดูดฝุ่น" class="w-4 h-4 accent-amber-500" checked>
+                            <span class="text-sm md:text-base font-medium">ล้างสี ดูดฝุ่นมาตรฐาน</span>
+                        </div>
+                        <span id="price-s1" class="text-amber-400 font-bold text-base">฿180</span>
+                    </label>
+                    <label class="flex justify-between items-center p-4 bg-zinc-950 border border-zinc-800 rounded-2xl cursor-pointer hover:border-amber-500/50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="service" value="ล้างพรีเมี่ยม + เคลือบสี" class="w-4 h-4 accent-amber-500">
+                            <span class="text-sm md:text-base font-medium">ล้างพรีเมี่ยม + เคลือบสี</span>
+                        </div>
+                        <span id="price-s2" class="text-amber-400 font-bold text-base">฿350</span>
+                    </label>
+                    <label class="flex justify-between items-center p-4 bg-zinc-950 border border-zinc-800 rounded-2xl cursor-pointer hover:border-amber-500/50 transition-all">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="service" value="เคลือบแก้วเซรามิก" class="w-4 h-4 accent-amber-500">
+                            <span class="text-sm md:text-base font-medium">เคลือบแก้วเซรามิก</span>
+                        </div>
+                        <span id="price-s3" class="text-amber-400 font-bold text-base">฿1,800</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ช่องกรอกโค้ดส่วนลดลูกค้า -->
+            <div class="space-y-2">
+                <label class="text-sm text-zinc-300 font-medium">โค้ดส่วนลด (ถ้ามี)</label>
+                <div class="flex gap-3">
+                    <input type="text" id="promo-code" placeholder="เช่น SURE88" class="flex-1 p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-white text-base outline-none focus:border-amber-500 uppercase">
+                    <button onclick="applyPromoCode()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-6 rounded-2xl text-sm font-bold transition-all">ใช้โค้ด</button>
+                </div>
+                <p id="promo-status" class="text-xs mt-1 text-zinc-500"></p>
+            </div>
+
+            <button onclick="proceedToStep2()" class="w-full gold-gradient hover:opacity-90 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-xl text-base mt-4">
+                เลือกเวลาจองคิว &rarr;
+            </button>
+        </div>
+
+        <!-- STEP 2: เลือกเวลา (Dynamic Hourly Slots) -->
+        <div id="step-2" class="space-y-6 hidden">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h2 class="text-sm md:text-base font-bold text-amber-400 tracking-wider uppercase">เลือกรอบเวลาคิว (อัปเดตเรียลไทม์)</h2>
+                <button onclick="goToStep(1)" class="text-sm text-zinc-400 hover:text-white underline">ย้อนกลับ</button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5" id="slots-container">
+                <!-- โหลดรอบเวลาผ่าน JS -->
+            </div>
+
+            <div id="selected-time-display" class="text-sm text-amber-400 font-bold text-center bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">ยังไม่ได้เลือกรอบเวลา</div>
+
+            <button onclick="finishBooking()" class="w-full gold-gradient hover:opacity-90 text-zinc-950 font-bold py-4 rounded-2xl transition-all shadow-xl text-base mt-4">
+                ยืนยันการจองคิว
+            </button>
+        </div>
+
+        <!-- STEP 3: สำเร็จ -->
+        <div id="step-3" class="space-y-6 hidden text-center">
+            <div class="bg-amber-500/10 border border-amber-500/30 p-6 rounded-3xl">
+                <div class="text-xs text-amber-400 font-bold tracking-widest uppercase mb-1">SURE 88 BOOKING CONFIRMED</div>
+                <div class="text-3xl font-mono font-extrabold text-white my-2" id="res-code">SURE-8892</div>
+                <p class="text-sm text-zinc-400">แสดงรหัสนี้แก่พนักงานที่เคาน์เตอร์</p>
+            </div>
+
+            <div class="bg-zinc-950 p-5 rounded-2xl text-left text-sm space-y-3 border border-zinc-800">
+                <div class="flex justify-between"><span class="text-zinc-400">รหัสลูกค้า:</span> <span id="summary-cus-code" class="font-bold text-amber-400"></span></div>
+                <div class="flex justify-between"><span class="text-zinc-400">ชื่อสมาชิก:</span> <span id="summary-name" class="font-medium text-white"></span></div>
+                <div class="flex justify-between"><span class="text-zinc-400">เบอร์ติดต่อ:</span> <span id="summary-phone" class="font-medium text-white"></span></div>
+                <div class="flex justify-between"><span class="text-zinc-400">ข้อมูลรถ:</span> <span id="summary-car" class="font-medium text-white"></span></div>
+                <div class="flex justify-between"><span class="text-zinc-400">เวลานัดหมาย:</span> <span id="summary-time" class="font-bold text-amber-400"></span></div>
+                <div id="summary-discount-row" class="flex justify-between hidden text-emerald-400">
+                    <span>ส่วนลด:</span> <span id="summary-discount"></span>
+                </div>
+                <div class="flex justify-between border-t border-zinc-900 pt-3 mt-2">
+                    <span class="text-zinc-300 font-bold">ยอดสุทธิ:</span> 
+                    <span id="summary-price" class="font-extrabold text-amber-400 text-base"></span>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-4 rounded-2xl text-base transition-all">
+                กลับสู่หน้าหลัก
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://rhyupbaluifioznkxzob.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoeXVwYmFsdWlmaW96bmt4em9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0OTM3NzgsImV4cCI6MjEwNDA2OTc3OH0.IMPsWjdQMFf2CtsGWx_YqyxUwnDRMiCGVdPAyHzvC0g';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentUser = { phone: '', name: '', customerCode: '' };
+        let pendingAction = null;
+        let appliedDiscount = 0;
+        let selectedTimeSlot = '';
+
+        const priceTable = {
+            'S':  { p1: 150,  p2: 300,  p3: 1500 },
+            'M':  { p1: 180,  p2: 350,  p3: 1800 },
+            'L':  { p1: 220,  p2: 420,  p3: 2200 },
+            'XL': { p1: 280,  p2: 500,  p3: 2700 }
+        };
+
+        // รายการรอบเวลาเปิดบริการตลอดทั้งวัน (Dynamic Hourly Slots)
+        const allTimeSlots = [
+            "09:00 - 10:00",
+            "10:00 - 11:00",
+            "11:00 - 12:00",
+            "12:00 - 13:00 (พักเที่ยง)",
+            "13:00 - 14:00",
+            "14:00 - 15:00",
+            "15:00 - 16:00",
+            "16:00 - 17:00",
+            "17:00 - 18:00"
+        ];
+
+        function updatePrices() {
+            const size = document.getElementById('car-size').value;
+            const currentPrices = priceTable[size];
+
+            document.getElementById('price-s1').innerText = `฿${currentPrices.p1.toLocaleString()}`;
+            document.getElementById('price-s2').innerText = `฿${currentPrices.p2.toLocaleString()}`;
+            document.getElementById('price-s3').innerText = `฿${currentPrices.p3.toLocaleString()}`;
+        }
+
+        function showModal(title, message, icon = '⚠️', action = null) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            document.getElementById('modal-icon').innerText = icon;
+            pendingAction = action;
+
+            const modal = document.getElementById('custom-modal');
+            const box = document.getElementById('modal-box');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            const box = document.getElementById('modal-box');
+            
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (pendingAction) {
+                    pendingAction();
+                    pendingAction = null;
+                }
+            }, 200);
+        }
+
+        function switchTab(tab) {
+            if(tab === 'login') {
+                document.getElementById('form-login').classList.remove('hidden');
+                document.getElementById('form-register').classList.add('hidden');
+                document.getElementById('tab-login').className = "flex-1 py-3 text-sm font-bold rounded-xl gold-gradient text-zinc-950 transition-all shadow-lg";
+                document.getElementById('tab-register').className = "flex-1 py-3 text-sm font-bold rounded-xl text-zinc-400 transition-all hover:text-white";
+            } else {
+                document.getElementById('form-login').classList.add('hidden');
+                document.getElementById('form-register').classList.remove('hidden');
+                document.getElementById('tab-register').className = "flex-1 py-3 text-sm font-bold rounded-xl gold-gradient text-zinc-950 transition-all shadow-lg";
+                document.getElementById('tab-login').className = "flex-1 py-3 text-sm font-bold rounded-xl text-zinc-400 transition-all hover:text-white";
+            }
+        }
+
+        async function handleRegister() {
+            const phone = document.getElementById('reg-phone').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+
+            if(!phone || !name) {
+                showModal('ข้อมูลไม่ครบถ้วน', 'กรุณากรอกเบอร์มือถือและชื่อ-นามสกุลให้ครบถ้วนครับ', '❌');
+                return;
+            }
+
+            let { data: existingUser } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('phone', phone)
+                .maybeSingle();
+
+            if(existingUser) {
+                showModal('เบอร์นี้ลงทะเบียนแล้ว', `เบอร์นี้มีรหัสลูกค้าคือ ${existingUser.customer_code} ระบบจะพาไปหน้าเข้าสู่ระบบ`, '⚠️', () => {
+                    switchTab('login');
+                    document.getElementById('login-input').value = existingUser.customer_code;
+                });
+                return;
+            }
+
+            const customerCode = 'CUS-' + Math.floor(1000 + Math.random() * 9000);
+
+            let { error: insertError } = await supabaseClient
+                .from('users')
+                .insert([{ phone, name, customer_code: customerCode }]);
+
+            if (insertError) {
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลลงฐานข้อมูลได้', '❌');
+                return;
+            }
+
+            currentUser = { phone, name, customerCode };
+            showModal('สมัครสมาชิกสำเร็จ', `รหัสลูกค้าของคุณคือ: ${customerCode}`, '✨', () => {
+                startBooking();
+            });
+        }
+
+        async function handleLogin() {
+            const inputVal = document.getElementById('login-input').value.trim();
+            if(!inputVal) {
+                showModal('ระบุข้อมูล', 'กรุณากรอกเบอร์มือถือหรือรหัสลูกค้าครับ', '❌');
+                return;
+            }
+
+            let query = supabaseClient.from('users').select('*');
+            if(inputVal.toUpperCase().startsWith('CUS-')) {
+                query = query.eq('customer_code', inputVal.toUpperCase());
+            } else {
+                query = query.eq('phone', inputVal);
+            }
+
+            let { data } = await query.maybeSingle();
+
+            if(!data) {
+                showModal('ไม่พบข้อมูลสมาชิก', 'ไม่พบเบอร์มือถือหรือรหัสลูกค้านี้ในระบบ กรุณาสมัครสมาชิกก่อนครับ', '🔍', () => {
+                    switchTab('register');
+                    if(!inputVal.toUpperCase().startsWith('CUS-')) {
+                        document.getElementById('reg-phone').value = inputVal;
+                    }
+                });
+                return;
+            }
+
+            currentUser = { phone: data.phone, name: data.name, customerCode: data.customer_code };
+            showModal('ยินดีต้อนรับกลับ', `ยินดีต้อนรับคุณ ${data.name} (${data.customer_code}) สู่ SURE 88 ครับ`, '🚗', () => {
+                startBooking();
+            });
+        }
+
+        function startBooking() {
+            document.getElementById('view-auth').classList.add('hidden');
+            document.getElementById('step-1').classList.remove('hidden');
+            document.getElementById('welcome-user').innerText = `👤 ${currentUser.name} (${currentUser.customerCode || 'สมาชิก'})`;
+            updatePrices();
+        }
+
+        function applyPromoCode() {
+            const code = document.getElementById('promo-code').value.trim().toUpperCase();
+            const statusEl = document.getElementById('promo-status');
+
+            if(code === 'SURE88') {
+                appliedDiscount = 50;
+                statusEl.className = "text-xs mt-1 text-emerald-400";
+                statusEl.innerText = "✅ ใช้โค้ดส่วนลดสำเร็จ (-฿50)";
+            } else if(code === 'VIP100') {
+                appliedDiscount = 100;
+                statusEl.className = "text-xs mt-1 text-emerald-400";
+                statusEl.innerText = "✅ ใช้โค้ดส่วนลดสำเร็จ (-฿100)";
+            } else {
+                appliedDiscount = 0;
+                statusEl.className = "text-xs mt-1 text-red-400";
+                statusEl.innerText = "❌ โค้ดส่วนลดไม่ถูกต้องหรือหมดอายุ";
+            }
+        }
+
+        function goToStep(step) {
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+        }
+
+        async function proceedToStep2() {
+            goToStep(2);
+            await fetchExistingBookings();
+        }
+
+        // Render รอบเวลาโดยนับจำนวนคิวเทียบกับ Max Bays
+        function renderTimeSlots(slotCounts = {}, maxBays = 2) {
+            const container = document.getElementById('slots-container');
+            container.innerHTML = '';
+
+            allTimeSlots.forEach(slot => {
+                const count = slotCounts[slot] || 0;
+                const isFull = count >= maxBays;
+                const isLunch = slot.includes('พักเที่ยง');
+                
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                
+                if(isLunch) {
+                    btn.className = "p-4 rounded-2xl text-sm font-semibold bg-zinc-950/50 border border-zinc-800 text-zinc-600 cursor-not-allowed";
+                    btn.innerText = slot;
+                    btn.disabled = true;
+                } else if(isFull) {
+                    btn.className = "p-4 rounded-2xl text-sm font-semibold bg-red-950/30 border border-red-500/30 text-red-400 cursor-not-allowed";
+                    btn.innerHTML = `${slot} <span class="block text-xs font-normal mt-1 text-red-400/80">(เต็มแล้ว)</span>`;
+                    btn.disabled = true;
+                } else {
+                    const isSelected = selectedTimeSlot === slot;
+                    if(isSelected) {
+                        btn.className = "slot-btn p-4 rounded-2xl text-sm font-bold gold-gradient text-zinc-950 border border-amber-500 shadow-lg transition-all";
+                    } else {
+                        btn.className = "slot-btn p-4 rounded-2xl text-sm font-bold bg-zinc-950 border border-zinc-800 text-zinc-300 hover:border-amber-500 hover:text-amber-400 transition-all shadow-md";
+                    }
+                    btn.innerText = slot;
+                    btn.onclick = () => selectTime(slot, btn);
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        function selectTime(slot, btnElement) {
+            document.querySelectorAll('.slot-btn').forEach(b => {
+                b.classList.remove('gold-gradient', 'text-zinc-950', 'border-amber-500');
+                b.classList.add('bg-zinc-950', 'text-zinc-300');
+            });
+            btnElement.classList.remove('bg-zinc-950', 'text-zinc-300');
+            btnElement.classList.add('gold-gradient', 'text-zinc-950', 'border-amber-500');
+            
+            selectedTimeSlot = slot;
+            document.getElementById('selected-time-display').innerText = `🕒 เวลานัดหมายที่เลือก: ${slot}`;
+            document.getElementById('selected-time-display').className = "text-sm text-amber-400 font-bold text-center bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20";
+        }
+
+        async function fetchExistingBookings() {
+            try {
+                // 1. ดึงข้อมูลการจองทั้งหมด
+                const { data, error } = await supabaseClient
+                    .from('bookings')
+                    .select('booking_time');
+
+                if (error) throw error;
+
+                // นับจำนวนการจองในแต่ละรอบเวลา
+                const slotCounts = {};
+                if (data) {
+                    data.forEach(item => {
+                        slotCounts[item.booking_time] = (slotCounts[item.booking_time] || 0) + 1;
+                    });
+                }
+
+                // 2. ดึงค่า Max Bays จากตาราง settings ใน Supabase (ถ้ามี)
+                let maxBays = 2;
+                try {
+                    const { data: settingsData } = await supabaseClient
+                        .from('settings')
+                        .select('*')
+                        .limit(1)
+                        .maybeSingle();
+                    
+                    if (settingsData && settingsData.max_bays) {
+                        maxBays = parseInt(settingsData.max_bays);
+                    }
+                } catch (e) {
+                    // หากยังไม่มีตาราง settings หรือเชื่อมต่อไม่ได้ จะใช้ค่าเริ่มต้นเป็น 2
+                }
+
+                renderTimeSlots(slotCounts, maxBays);
+            } catch (err) {
+                console.error('Error fetching slots:', err);
+                renderTimeSlots({}, 2);
+            }
+        }
+
+        async function finishBooking() {
+            if(!selectedTimeSlot) {
+                showModal('ยังไม่เลือกรอบเวลา', 'กรุณาเลือกรอบเวลาที่ต้องการจองคิวก่อนครับ', '⏰');
+                return;
+            }
+            const carSize = document.getElementById('car-size').value;
+            const carModelInput = document.getElementById('car-model').value || 'รถทั่วไป';
+            let carInfo = `ไซส์ ${carSize} - ${carModelInput}`;
+            let color = document.getElementById('car-color').value || '-';
+            let plate = document.getElementById('car-plate').value || 'ป้ายแดง';
+            
+            const selectedServiceIndex = Array.from(document.querySelectorAll('input[name="service"]')).findIndex(el => el.checked);
+            const serviceNames = ['ล้างสี ดูดฝุ่น', 'ล้างพรีเมี่ยม + เคลือบสี', 'เคลือบแก้วเซรามิก'];
+            const serviceKeys = ['p1', 'p2', 'p3'];
+
+            let service = serviceNames[selectedServiceIndex];
+            let basePrice = priceTable[carSize][serviceKeys[selectedServiceIndex]];
+            let finalPrice = Math.max(0, basePrice - appliedDiscount);
+
+            const resCode = `SURE-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            let { error } = await supabaseClient.from('bookings').insert([{
+                res_code: resCode,
+                customer_code: currentUser.customerCode,
+                phone: currentUser.phone,
+                name: currentUser.name,
+                car_size: carSize,
+                car_model: carModelInput,
+                car_info: carInfo,
+                color: color,
+                plate: plate,
+                service: service,
+                price: finalPrice,
+                booking_time: selectedTimeSlot
+            }]);
+
+            if(error) {
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองลงระบบได้: ' + error.message, '❌');
+                return;
+            }
+
+            document.getElementById('summary-cus-code').innerText = currentUser.customerCode;
+            document.getElementById('summary-name').innerText = currentUser.name;
+            document.getElementById('summary-phone').innerText = currentUser.phone;
+            document.getElementById('summary-car').innerText = `${carInfo} (${color}) - ${plate}`;
+            document.getElementById('summary-time').innerText = selectedTimeSlot;
+            
+            if(appliedDiscount > 0) {
+                document.getElementById('summary-discount-row').classList.remove('hidden');
+                document.getElementById('summary-discount').innerText = `-฿${appliedDiscount.toLocaleString()}`;
+            }
+
+            document.getElementById('summary-price').innerText = `฿${Number(finalPrice).toLocaleString()}`;
+            document.getElementById('res-code').innerText = resCode;
+
+            goToStep(3);
+        }
+    </script>
+</body>
+</html>
