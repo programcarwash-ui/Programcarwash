@@ -12,9 +12,22 @@
         body { font-family: 'Outfit', sans-serif; background-color: #0b0f19; }
         .neon-glow { box-shadow: 0 0 30px rgba(245, 158, 11, 0.15); }
         .gold-gradient { 
-  background: linear-gradient(135deg, #e5d18e 0%, #c5ac5c 50%, #9d8336 100%) !important; 
-  color: #1f1a0e !important;
-}
+          background: linear-gradient(135deg, #e5d18e 0%, #c5ac5c 50%, #9d8336 100%) !important; 
+          color: #1f1a0e !important;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-receipt-area, #printable-receipt-area * { visibility: visible; }
+            #printable-receipt-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: var(--receipt-w, 80mm);
+                background: white !important;
+                color: black !important;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body class="text-white min-h-screen p-4 md:p-8">
@@ -29,7 +42,97 @@
         </div>
     </div>
 
-    <!-- PHOTO UPLOAD MODAL (MULTIPLE UP TO 4 PHOTOS) -->
+    <!-- PAYMENT & RECEIPT MODAL -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-zinc-900 border border-amber-500/50 w-full max-w-xl rounded-3xl p-6 md:p-8 space-y-6 neon-glow max-h-[95vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl gold-gradient flex items-center justify-center font-bold text-zinc-950 text-lg">S88</div>
+                    <div>
+                        <h3 class="text-base font-bold text-amber-400">ระบบชำระเงิน & พิมพ์ใบเสร็จ</h3>
+                        <p class="text-xs text-zinc-400">พร้อมเพย์ร้านค้า & เครื่องพิมพ์เทอมอล</p>
+                    </div>
+                </div>
+                <button onclick="closePaymentModal()" class="text-zinc-400 hover:text-white text-sm font-bold px-3 py-1.5 bg-zinc-800 rounded-xl">✕ ปิด</button>
+            </div>
+
+            <!-- STEP 1: QR CODE PROMPTPAY -->
+            <div id="pay-step-qr" class="space-y-4 text-center">
+                <div class="bg-zinc-950 p-6 rounded-3xl border border-zinc-800 inline-block mx-auto">
+                    <p class="text-xs text-zinc-400 mb-2">สแกนเพื่อชำระเงินผ่านพร้อมเพย์</p>
+                    <div id="qr-code-box" class="bg-white p-3 rounded-2xl inline-block shadow-inner">
+                        <img id="promptpay-qr-img" src="" alt="PromptPay QR" class="w-48 h-48 object-contain mx-auto">
+                    </div>
+                    <p id="pay-amount-display" class="text-2xl font-extrabold text-amber-400 mt-3">฿0.00</p>
+                    <p class="text-xs text-zinc-400 mt-1">พร้อมเพย์: <span id="shop-promptpay-number" class="text-white font-mono">กำลังโหลด...</span> (SURE 88 CARCARE)</p>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="confirmPaymentSuccess()" class="w-full gold-gradient text-zinc-950 font-bold py-4 rounded-2xl text-sm shadow-lg hover:opacity-90 transition-all">
+                        ✅ ยืนยันรับเงินเรียบร้อย & ไปหน้าพิมพ์ใบเสร็จ
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: RECEIPT PREVIEW & PRINTER SETTINGS -->
+            <div id="pay-step-receipt" class="space-y-4 hidden">
+                <div class="flex justify-between items-center bg-zinc-950 p-4 rounded-2xl border border-zinc-800">
+                    <span class="text-xs text-zinc-300 font-semibold">🖨️ เลือกขนาดหน้ากว้างกระดาษเทอมอล:</span>
+                    <select id="thermal-width-select" onchange="updateReceiptWidth()" class="bg-zinc-900 border border-zinc-700 text-amber-400 text-xs font-bold px-3 py-2 rounded-xl outline-none">
+                        <option value="80mm">80 มม. (มาตรฐาน)</option>
+                        <option value="90mm">90 มม.</option>
+                        <option value="100mm">100 มม. (ใหญ่พิเศษ)</option>
+                    </select>
+                </div>
+
+                <!-- PREVIEW CONTAINER -->
+                <div class="flex justify-center bg-zinc-950 p-4 rounded-2xl border border-zinc-800 overflow-x-auto">
+                    <div id="printable-receipt-area" style="width: 80mm;" class="bg-white text-zinc-900 p-6 rounded-xl font-mono text-xs shadow-2xl space-y-3">
+                        <div class="text-center space-y-1 border-b border-dashed border-zinc-400 pb-3">
+                            <div class="w-10 h-10 rounded-full bg-amber-500 text-zinc-950 font-extrabold flex items-center justify-center mx-auto text-sm">S88</div>
+                            <h2 class="text-base font-bold tracking-wider">SURE 88 CARCARE</h2>
+                            <p class="text-[10px] text-zinc-600">ศูนย์บริการเคลือบแก้วและล้างรถครบวงจร</p>
+                            <p class="text-[10px] text-zinc-600">โทร: <span id="rec-shop-phone">089-999-8888</span> | สาขาหลักหน้าร้าน</p>
+                        </div>
+
+                        <div class="space-y-1 border-b border-dashed border-zinc-400 pb-3 text-[11px]">
+                            <div class="flex justify-between"><span>เลขที่ใบเสร็จ:</span> <strong id="rec-code">SURE-XXXX</strong></div>
+                            <div class="flex justify-between"><span>วันที่/เวลา:</span> <span id="rec-date">-</span></div>
+                            <div class="flex justify-between"><span>ลูกค้า:</span> <strong id="rec-name">-</strong></div>
+                            <div class="flex justify-between"><span>เบอร์โทร:</span> <span id="rec-phone">-</span></div>
+                            <div class="flex justify-between"><span>รุ่นรถ / ทะเบียน:</span> <span id="rec-car">-</span></div>
+                        </div>
+
+                        <div class="space-y-2 border-b border-dashed border-zinc-400 pb-3 text-[11px]">
+                            <div class="font-bold">รายการบริการ:</div>
+                            <div class="flex justify-between"><span id="rec-service">ล้างรถมาตรฐาน</span> <strong id="rec-price">฿180</strong></div>
+                        </div>
+
+                        <div class="space-y-1 text-[11px] font-bold">
+                            <div class="flex justify-between text-sm"><span>ยอดรวมสุทธิ:</span> <span id="rec-total" class="text-amber-700">฿180</span></div>
+                            <div class="flex justify-between text-emerald-600 pt-1"><span>สถานะการชำระ:</span> <span>[ ✓ ชำระแล้ว (PAID) ]</span></div>
+                            <div class="text-center font-normal text-[10px] text-zinc-500 pt-1">ชำระผ่านระบบพร้อมเพย์ QR Code</div>
+                        </div>
+
+                        <div class="text-center pt-3 border-t border-dashed border-zinc-400 text-[10px] text-zinc-600 space-y-0.5">
+                            <p>*** ขอบคุณที่ใช้บริการ SURE 88 ***</p>
+                            <p>The Ultimate Car Detailing Experience</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="triggerPrintReceipt()" class="gold-gradient text-zinc-950 font-bold py-3.5 rounded-2xl text-xs shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                        🖨️ พิมพ์ใบเสร็จ
+                    </button>
+                    <button onclick="closePaymentModal()" class="bg-zinc-800 text-zinc-200 hover:bg-zinc-700 font-bold py-3.5 rounded-2xl text-xs transition-all">
+                        เสร็จสิ้น / ปิดหน้าต่าง
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHOTO UPLOAD MODAL -->
     <div id="photo-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-zinc-900 border border-amber-500/40 w-full max-w-lg rounded-3xl p-8 space-y-6 neon-glow max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center">
@@ -38,23 +141,15 @@
             </div>
             <div class="space-y-4">
                 <p id="photo-modal-desc" class="text-sm text-zinc-300">กรุณาถ่ายภาพหรือเลือกรูปภาพสภาพรถ (เลือกได้สูงสุด 4 รูป)</p>
-                
                 <div class="border-2 border-dashed border-zinc-700 rounded-2xl p-6 text-center cursor-pointer hover:border-amber-500 transition-all relative">
                     <input type="file" id="car-photo-file" accept="image/*" multiple class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFilesSelect(this)">
-                    
-                    <!-- Placeholder เมื่อยังไม่ได้เลือกรูป -->
                     <div id="upload-placeholder" class="space-y-3 py-4">
                         <span class="text-4xl">📷</span>
                         <p class="text-sm text-zinc-200 font-semibold">คลิกเพื่อเลือกรูปภาพ หรือถ่ายรูปเพิ่ม</p>
                         <p class="text-xs text-amber-400 font-medium" id="photo-count-indicator">เลือกแล้ว 0/4 รูป</p>
                     </div>
-
-                    <!-- Grid แสดงรูปตัวอย่าง (สูงสุด 4 รูป) -->
-                    <div id="image-previews-container" class="grid grid-cols-2 gap-3 hidden">
-                        <!-- รูปตัวอย่างจะถูกแทรกที่นี่ผ่าน JS -->
-                    </div>
+                    <div id="image-previews-container" class="grid grid-cols-2 gap-3 hidden"></div>
                 </div>
-
                 <div>
                     <label class="text-sm text-zinc-300 font-medium">หมายเหตุ / ตำหนิรถ (ถ้ามี)</label>
                     <textarea id="car-note" placeholder="เช่น มีรอยขีดข่วนที่กันชนหน้าเดิม" class="w-full mt-2 p-4 bg-zinc-950 border border-zinc-800 rounded-2xl text-sm text-white outline-none focus:border-amber-500 h-24 resize-none"></textarea>
@@ -138,14 +233,33 @@
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center px-1">
-                    <h2 class="text-base font-bold text-amber-400 uppercase tracking-wider">รายการคิวและสถานะรถ (REALTIME)</h2>
-                    <span class="text-sm text-zinc-400 font-medium">ระบบจะแจ้งเตือนอัตโนมัติเมื่อมีคิวใหม่เข้ามา</span>
+                <!-- SECTION 1: คิวรอรับบริการ (Pending) -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center px-1 border-l-4 border-amber-500 pl-3">
+                        <h2 class="text-base font-bold text-amber-400 uppercase tracking-wider">⏳ คิวรอรับบริการ (Pending)</h2>
+                        <span class="text-sm text-zinc-400 font-medium">รถที่ยังไม่ได้เริ่มล้าง</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="queue-pending-container"></div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="queue-container">
-                    <!-- รายการคิวจะโหลดมาแสดงที่นี่ -->
+                <!-- SECTION 2: ช่องพร้อมล้าง / กำลังดำเนินการ (Washing / Coating) -->
+                <div class="space-y-4 pt-6">
+                    <div class="flex justify-between items-center px-1 border-l-4 border-blue-500 pl-3">
+                        <h2 class="text-base font-bold text-blue-400 uppercase tracking-wider">🚗 ช่องรถกำลังล้าง / พร้อมล้าง (In Progress)</h2>
+                        <span class="text-sm text-zinc-400 font-medium">รถที่รับเข้าช่องบริการแล้ว พร้อมโชว์รูปถ่ายก่อนล้าง</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="queue-active-container"></div>
                 </div>
+
+                <!-- SECTION 3: งานเสร็จสิ้น (Completed) -->
+                <div class="space-y-4 pt-6">
+                    <div class="flex justify-between items-center px-1 border-l-4 border-emerald-500 pl-3">
+                        <h2 class="text-base font-bold text-emerald-400 uppercase tracking-wider">✅ ประวัติงานเสร็จสิ้น / ส่งมอบแล้ว</h2>
+                        <span class="text-sm text-zinc-400 font-medium">รายการที่ล้างเสร็จแล้ว</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="queue-completed-container"></div>
+                </div>
+
             </div>
 
             <!-- TAB 2: OVERNIGHT -->
@@ -177,6 +291,9 @@
         let currentPhotoType = 'before';
         let selectedFilesToUpload = [];
         let currentStaffInfo = null;
+        let isFetchingBookings = false; 
+        let activePaymentBooking = null; 
+        let cachedShopPromptPay = "0899998888"; // ค่าสำรองเริ่มต้น
 
         function showModal(title, message, icon = '⚠️', action = null) {
             const modalTitle = document.getElementById('modal-title');
@@ -215,6 +332,36 @@
             }, 200);
         }
 
+       async function fetchShopSettings() {
+    if (!supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('settings')
+            .select('*');
+
+        if (data) {
+            // วนลูปหาแถวที่มี key เป็น owner_bank_account
+            const bankSetting = data.find(item => item.key === 'owner_bank_account');
+            if (bankSetting && bankSetting.value) {
+                let bankData = bankSetting.value;
+                
+                // ถ้าค่าที่เก็บมาเป็น string แบบ JSON ให้ parse ก่อน (ถ้าเป็น object อยู่แล้วข้ามได้เลย)
+                if (typeof bankData === 'string') {
+                    try { bankData = JSON.parse(bankData); } catch(e) {}
+                }
+
+                // ดึงเบอร์จากฟิลด์ที่เป็นไปได้ เช่น promptpay, accountNo, หรือ phone ภายใน JSON
+                const pPay = bankData.promptpay || bankData.promptpayNumber || bankData.accountNo || bankData.phone;
+                if (pPay) {
+                    cachedShopPromptPay = String(pPay).replace(/[^0-9]/g, '');
+                }
+            }
+        }
+    } catch (err) {
+        console.log('Fetch settings note:', err);
+    }
+}
+
         async function staffLogin() {
             const phoneInputEl = document.getElementById('staff-phone');
             const phoneInput = phoneInputEl ? phoneInputEl.value.trim() : '';
@@ -249,6 +396,7 @@
                 if (staffLoginView) staffLoginView.classList.add('hidden');
                 if (staffDashboard) staffDashboard.classList.remove('hidden');
                 
+                await fetchShopSettings();
                 fetchBookings();
                 initRealtimeSubscription();
                 showModal('ยินดีต้อนรับ', `เข้าสู่ระบบสำเร็จ! สวัสดีคุณ ${data.name}`, '👋');
@@ -305,151 +453,273 @@
             }
         }
 
- async function fetchBookings() {
-    if (!supabaseClient) return;
-    try {
-        const { data, error } = await supabaseClient
-            .from('bookings')
-            .select('*')
-            .order('created_at', { ascending: false });
+        async function fetchBookings() {
+            if (!supabaseClient || isFetchingBookings) return;
+            isFetchingBookings = true;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('bookings')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-        if (error) throw error;
+                if (error) throw error;
 
-        const container = document.getElementById('queue-container');
-        if (!container) return;
-        container.innerHTML = '';
+                const pendingContainer = document.getElementById('queue-pending-container');
+                const activeContainer = document.getElementById('queue-active-container');
+                const completedContainer = document.getElementById('queue-completed-container');
 
-        if (data && data.length > 0) {
-            for (let i = data.length - 1; i >= 0; i--) {
-                await renderBookingCard(data[i]);
-            }
-        } else {
-            container.innerHTML = `<div class="col-span-full text-center py-12 text-zinc-400 text-sm font-medium">ยังไม่มีรายการคิวในระบบ</div>`;
-        }
-    } catch (err) {
-        console.error('Fetch error:', err);
-    }
-}
-// ใช้ฟังก์ชันนี้เพียงชุดเดียว (มีระบบเช็ก VIP)
-async function renderBookingCard(booking) {
-    const container = document.getElementById('queue-container');
-    if (!container) return;
-    const cardId = booking.id;
-    
-    const code = booking.res_code || booking.queue_code || 'SURE-XXXX';
-    const name = booking.name || booking.customer_name || booking.fullname || 'ลูกค้าทั่วไป';
-    const phone = booking.phone || booking.customer_phone || booking.tel || '-';
-    const size = booking.car_size || booking.size || 'M';
-    
-    const carDetail = booking.car_model || booking.car_info || booking.model || booking.car || booking.brand || booking.vehicle || booking.vehicle_model || '-';
-    const licensePlate = booking.plate || booking.license_plate || booking.car_plate || '-';
-    const timeSlot = booking.time || booking.time_slot || booking.booking_time || 'คิวหน้าร้าน / Walk-in';
-    const price = booking.price || '180';
-    const service = booking.service || booking.service_name || 'ล้างรถมาตรฐาน';
-    const status = booking.status || 'pending';
-    
-    const beforeList = parsePhotos(booking.photo_before || booking.before_photos || booking.car_photo_url);
-    const afterList = parsePhotos(booking.photo_after || booking.after_photos || booking.after_photo_url);
+                if (pendingContainer) pendingContainer.innerHTML = '';
+                if (activeContainer) activeContainer.innerHTML = '';
+                if (completedContainer) completedContainer.innerHTML = '';
 
-   let tierStyle = 'border border-zinc-800 bg-zinc-900/90 text-white'; 
-    let tierBadge = '<span class="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700 px-2.5 py-1 rounded-xl">⚪ WHITE MEMBER</span>';
-
-    if (supabaseClient) {
-        let userProfile = null;
-
-        if (phone && phone !== '-') {
-            const { data } = await supabaseClient
-                .from('users')
-                .select('points, tier')
-                .eq('phone', phone)
-                .maybeSingle();
-            userProfile = data;
-        }
-
-        if (!userProfile && name && name !== 'ลูกค้าทั่วไป') {
-            const { data } = await supabaseClient
-                .from('users')
-                .select('points, tier')
-                .eq('name', name)
-                .maybeSingle();
-            userProfile = data;
-        }
-
-        if (userProfile) {
-            const points = userProfile.points || 0;
-            const tier = userProfile.tier || '';
-
-            if (tier === 'STAINLESS GOLD' || points >= 1000) {
-                // พื้นหลังทองเข้มพรีเมียม (Gold Theme)
-                tierStyle = 'border-2 border-[#c5ac5c] bg-gradient-to-br from-[#3d331a] via-zinc-900 to-zinc-950 shadow-xl shadow-[#c5ac5c]/20 text-white';
-                tierBadge = '<span class="text-xs bg-[#c5ac5c]/30 text-[#e5d18e] border border-[#c5ac5c] px-2.5 py-1 rounded-xl font-bold">🥇 STAINLESS GOLD</span>';
-            } else if (tier === 'SILVER VIP' || (points >= 300 && points < 1000)) {
-                // พื้นหลังเทาเงินเข้ม (Silver Theme แบบในบัตร)
-                tierStyle = 'border-2 border-slate-400 bg-gradient-to-br from-[#2a2f38] via-zinc-900 to-zinc-950 shadow-xl shadow-slate-400/20 text-white';
-                tierBadge = '<span class="text-xs bg-slate-300/30 text-slate-100 border border-slate-400 px-2.5 py-1 rounded-xl font-bold">🥈 SILVER VIP</span>';
+                if (data && data.length > 0) {
+                    const uniqueBookings = Array.from(new Map(data.map(item => [item.id, item])).values());
+                    for (let i = 0; i < uniqueBookings.length; i++) {
+                        await renderBookingCard(uniqueBookings[i]);
+                    }
+                } else {
+                    if (pendingContainer) pendingContainer.innerHTML = `<div class="col-span-full text-center py-6 text-zinc-400 text-sm font-medium">ยังไม่มีรายการคิว</div>`;
+                }
+            } catch (err) {
+                console.error('Fetch error:', err);
+            } finally {
+                isFetchingBookings = false;
             }
         }
-    }
 
-    let statusText = '⏳ รอคิวหน้าร้าน / จองออนไลน์';
-    let statusBadgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-    if (status === 'washing') {
-        statusText = '🚗 กำลังล้าง / ทำความสะอาด';
-        statusBadgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20 animate-pulse';
-    } else if (status === 'coating') {
-        statusText = '✨ กำลังเคลือบสี / อบเซรามิก';
-        statusBadgeClass = 'bg-purple-500/10 text-purple-400 border-purple-500/20 animate-pulse';
-    } else if (status === 'completed') {
-        statusText = '✅ เสร็จสิ้น พร้อมส่งมอบ';
-        statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-    }
+        async function renderBookingCard(booking) {
+            const cardId = booking.id;
+            const status = booking.status || 'pending';
 
-    const card = document.createElement('div');
-    card.className = `booking-card ${tierStyle} p-6 rounded-3xl space-y-4 transition-all ${status === 'completed' ? 'opacity-70' : ''}`;
-    card.setAttribute('data-id', cardId);
-    card.innerHTML = `
-        <div class="flex justify-between items-start">
-            <div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-xs font-mono font-bold">${code}</span>
-                    ${tierBadge}
+            let targetContainerId = 'queue-pending-container';
+            if (status === 'washing' || status === 'coating') {
+                targetContainerId = 'queue-active-container';
+            } else if (status === 'completed') {
+                targetContainerId = 'queue-completed-container';
+            }
+
+            const container = document.getElementById(targetContainerId);
+            if (!container) return;
+            
+            const code = booking.res_code || booking.queue_code || 'SURE-XXXX';
+            const name = booking.name || booking.customer_name || booking.fullname || 'ลูกค้าทั่วไป';
+            const phone = booking.phone || booking.customer_phone || booking.tel || '-';
+            const size = booking.car_size || booking.size || 'M';
+            
+            const carDetail = booking.car_model || booking.car_info || booking.model || booking.car || booking.brand || booking.vehicle || booking.vehicle_model || '-';
+            const licensePlate = booking.plate || booking.license_plate || booking.car_plate || '-';
+            const timeSlot = booking.time || booking.time_slot || booking.booking_time || 'คิวหน้าร้าน / Walk-in';
+            const price = booking.price || '180';
+            const service = booking.service || booking.service_name || 'ล้างรถมาตรฐาน';
+            
+            const beforeList = parsePhotos(booking.photo_before || booking.before_photos || booking.car_photo_url);
+            const afterList = parsePhotos(booking.photo_after || booking.after_photos || booking.after_photo_url);
+
+            let tierStyle = 'border border-zinc-800 bg-zinc-900/90 text-white'; 
+            let tierBadge = '<span class="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700 px-2.5 py-1 rounded-xl">⚪ WHITE MEMBER</span>';
+
+            if (supabaseClient) {
+                let userProfile = null;
+                if (phone && phone !== '-') {
+                    const { data } = await supabaseClient.from('users').select('points, tier').eq('phone', phone).maybeSingle();
+                    userProfile = data;
+                }
+                if (!userProfile && name && name !== 'ลูกค้าทั่วไป') {
+                    const { data } = await supabaseClient.from('users').select('points, tier').eq('name', name).maybeSingle();
+                    userProfile = data;
+                }
+                if (userProfile) {
+                    const points = userProfile.points || 0;
+                    const tier = userProfile.tier || '';
+                    if (tier === 'STAINLESS GOLD' || points >= 1000) {
+                        tierStyle = 'border-2 border-[#c5ac5c] bg-gradient-to-br from-[#3d331a] via-zinc-900 to-zinc-950 shadow-xl shadow-[#c5ac5c]/20 text-white';
+                        tierBadge = '<span class="text-xs bg-[#c5ac5c]/30 text-[#e5d18e] border border-[#c5ac5c] px-2.5 py-1 rounded-xl font-bold">🥇 STAINLESS GOLD</span>';
+                    } else if (tier === 'SILVER VIP' || (points >= 300 && points < 1000)) {
+                        tierStyle = 'border-2 border-slate-400 bg-gradient-to-br from-[#2a2f38] via-zinc-900 to-zinc-950 shadow-xl shadow-slate-400/20 text-white';
+                        tierBadge = '<span class="text-xs bg-slate-300/30 text-slate-100 border border-slate-400 px-2.5 py-1 rounded-xl font-bold">🥈 SILVER VIP</span>';
+                    }
+                }
+            }
+
+            let statusText = '⏳ รอคิวหน้าร้าน / จองออนไลน์';
+            let statusBadgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+            if (status === 'washing') {
+                statusText = '🚗 กำลังล้าง / ทำความสะอาด';
+                statusBadgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20 animate-pulse';
+            } else if (status === 'coating') {
+                statusText = '✨ กำลังเคลือบสี / อบเซรามิก';
+                statusBadgeClass = 'bg-purple-500/10 text-purple-400 border-purple-500/20 animate-pulse';
+            } else if (status === 'completed') {
+                statusText = '✅ เสร็จสิ้น พร้อมส่งมอบ';
+                statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+            }
+
+            let beforePhotosHtml = '';
+            if (beforeList.length > 0) {
+                let imgThumbnails = beforeList.map(url => `<a href="${url}" target="_blank"><img src="${url}" class="w-14 h-14 object-cover rounded-xl border border-amber-500/40 hover:scale-105 transition-all"></a>`).join('');
+                beforePhotosHtml = `
+                    <div class="bg-zinc-950 p-3 rounded-2xl border border-zinc-800 space-y-2">
+                        <span class="text-xs text-amber-400 font-semibold block">📸 รูปถ่ายก่อนล้าง (${beforeList.length} รูป - คลิกดูรูปใหญ่):</span>
+                        <div class="flex gap-2 flex-wrap">${imgThumbnails}</div>
+                    </div>
+                `;
+            }
+
+            let afterPhotosHtml = '';
+            if (afterList.length > 0) {
+                let imgThumbnailsAfter = afterList.map(url => `<a href="${url}" target="_blank"><img src="${url}" class="w-14 h-14 object-cover rounded-xl border border-emerald-500/40 hover:scale-105 transition-all"></a>`).join('');
+                afterPhotosHtml = `
+                    <div class="bg-zinc-950 p-3 rounded-2xl border border-zinc-800 space-y-2">
+                        <span class="text-xs text-emerald-400 font-semibold block">✨ รูปถ่ายหลังล้างเสร็จ (${afterList.length} รูป - คลิกดูรูปใหญ่):</span>
+                        <div class="flex gap-2 flex-wrap">${imgThumbnailsAfter}</div>
+                    </div>
+                `;
+            }
+
+            const isPending = status === 'pending';
+            const isWashing = status === 'washing';
+            const isCoating = status === 'coating';
+            const isCompleted = status === 'completed';
+
+            const startWashingBtnHtml = isPending 
+                ? `<button onclick="checkAndStartWashing('${cardId}', ${beforeList.length})" class="bg-blue-500/15 text-blue-400 border border-blue-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-blue-500/25 transition-all">🚗 เริ่มล้าง</button>`
+                : `<button disabled class="bg-zinc-800/40 text-zinc-600 border border-zinc-800 py-3 rounded-2xl text-xs font-bold cursor-not-allowed">🚗 เริ่มล้างแล้ว</button>`;
+
+            const coatingBtnHtml = (isPending || isWashing)
+                ? `<button onclick="updateBookingStatus('${cardId}', 'coating')" class="bg-purple-500/15 text-purple-400 border border-purple-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-purple-500/25 transition-all">✨ เคลือบสี</button>`
+                : `<button disabled class="bg-zinc-800/40 text-zinc-600 border border-zinc-800 py-3 rounded-2xl text-xs font-bold cursor-not-allowed">✨ กำลังเคลือบ / เคลือบแล้ว</button>`;
+
+            const completeBtnHtml = !isCompleted
+                ? `<button onclick="checkAndCompleteJob('${cardId}', ${afterList.length})" class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-500/25 transition-all">✅ ส่งมอบ</button>`
+                : `<button disabled class="bg-zinc-800/40 text-zinc-600 border border-zinc-800 py-3 rounded-2xl text-xs font-bold cursor-not-allowed">✅ ส่งมอบแล้ว</button>`;
+
+            let photoButtonsHtml = '';
+            if (!isPending) {
+                photoButtonsHtml = `
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="openPhotoModal('${cardId}', 'before')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">📸 ถ่ายรูปรถรับรถ</button>
+                        <button onclick="openPhotoModal('${cardId}', 'after')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">✨ ถ่ายรูปรถส่งรถ</button>
+                    </div>
+                `;
+            }
+
+            let paymentButtonHtml = '';
+            if (isCompleted) {
+                paymentButtonHtml = `
+                    <div>
+                        <button onclick='openPaymentModal(${JSON.stringify(booking)})' class="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-zinc-950 font-extrabold py-3.5 rounded-2xl text-xs shadow-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                            💳 ชำระเงินผ่าน QR พร้อมเพย์ & พิมพ์ใบเสร็จ
+                        </button>
+                    </div>
+                `;
+            }
+
+            const card = document.createElement('div');
+            card.className = `booking-card ${tierStyle} p-6 rounded-3xl space-y-4 transition-all ${isCompleted ? 'opacity-80' : ''}`;
+            card.setAttribute('data-id', cardId);
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-xs font-mono font-bold">${code}</span>
+                            ${tierBadge}
+                        </div>
+                        <h3 class="card-name text-base font-bold text-white mt-2.5">${name}</h3>
+                        <p class="text-sm text-amber-300 font-medium mt-0.5">📞 โทร: <a href="tel:${phone}" class="underline">${phone}</a></p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs bg-zinc-950 border border-zinc-800 px-3.5 py-2 rounded-xl text-amber-400 font-bold block">${timeSlot}</span>
+                    </div>
                 </div>
-                <h3 class="card-name text-base font-bold text-white mt-2.5">${name}</h3>
-                <p class="text-sm text-amber-300 font-medium mt-0.5">📞 โทร: <a href="tel:${phone}" class="underline">${phone}</a></p>
-            </div>
-            <div class="text-right">
-                <span class="text-xs bg-zinc-950 border border-zinc-800 px-3.5 py-2 rounded-xl text-amber-400 font-bold block">${timeSlot}</span>
-            </div>
-        </div>
-        <div class="text-sm text-zinc-200 bg-zinc-950 p-4 rounded-2xl border border-zinc-800 space-y-2">
-            <div class="flex justify-between items-center">
-                <span class="text-amber-400 font-semibold">🚗 รุ่นรถ: <strong class="text-white">${carDetail}</strong></span>
-                <span class="text-amber-400 font-bold text-base">฿${price}</span>
-            </div>
-            <div class="text-amber-300 font-medium text-xs">🏷️ ป้ายทะเบียน: ${licensePlate} (ไซส์ ${size})</div>
-        </div>
-        <div class="text-xs text-zinc-400 font-medium">บริการ: ${service}</div>
-        <div>
-            <span class="text-xs px-3 py-2 rounded-xl border block text-center font-bold ${statusBadgeClass}">สถานะปัจจุบัน: ${statusText}</span>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-2 text-xs text-zinc-300 bg-zinc-950 p-3 rounded-2xl border border-zinc-800">
-            <div>📸 รูปรับรถ: ${beforeList.length > 0 ? `<span class="text-emerald-400 font-bold">✓ บันทึกแล้ว (${beforeList.length}/4)</span>` : '<span class="text-amber-400 font-medium">⏳ ยังไม่ถ่าย</span>'}</div>
-            <div>✨ รูปส่งรถ: ${afterList.length > 0 ? `<span class="text-emerald-400 font-bold">✓ บันทึกแล้ว (${afterList.length}/4)</span>` : '<span class="text-amber-400 font-medium">⏳ ยังไม่ถ่าย</span>'}</div>
-        </div>
+                <div class="text-sm text-zinc-200 bg-zinc-950 p-4 rounded-2xl border border-zinc-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-amber-400 font-semibold">🚗 รุ่นรถ: <strong class="text-white">${carDetail}</strong></span>
+                        <span class="text-amber-400 font-bold text-base">฿${price}</span>
+                    </div>
+                    <div class="text-amber-300 font-medium text-xs">🏷️ ป้ายทะเบียน: ${licensePlate} (ไซส์ ${size})</div>
+                </div>
+                <div class="text-xs text-zinc-400 font-medium">บริการ: ${service}</div>
+                <div>
+                    <span class="text-xs px-3 py-2 rounded-xl border block text-center font-bold ${statusBadgeClass}">สถานะปัจจุบัน: ${statusText}</span>
+                </div>
+                
+                ${beforePhotosHtml}
+                ${afterPhotosHtml}
 
-        <div class="grid grid-cols-3 gap-2 pt-1">
-            <button onclick="checkAndStartWashing('${cardId}', ${beforeList.length})" class="bg-blue-500/15 text-blue-400 border border-blue-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-blue-500/25 transition-all">🚗 เริ่มล้าง</button>
-            <button onclick="updateBookingStatus('${cardId}', 'coating')" class="bg-purple-500/15 text-purple-400 border border-purple-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-purple-500/25 transition-all">✨ เคลือบสี</button>
-            <button onclick="checkAndCompleteJob('${cardId}', ${afterList.length})" class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-500/25 transition-all">✅ ส่งมอบ</button>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-            <button onclick="openPhotoModal('${cardId}', 'before')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">📸 ถ่ายรูปรถรับรถ (1-4 รูป)</button>
-            <button onclick="openPhotoModal('${cardId}', 'after')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">✨ ถ่ายรูปรถส่งรถ (1-4 รูป)</button>
-        </div>
-    `;
-    container.prepend(card);
-}
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                    ${startWashingBtnHtml}
+                    ${coatingBtnHtml}
+                    ${completeBtnHtml}
+                </div>
+                
+                ${photoButtonsHtml}
+                ${paymentButtonHtml}
+            `;
+            container.appendChild(card);
+        }
+
+        async function openPaymentModal(booking) {
+            activePaymentBooking = booking;
+            const priceVal = parseFloat(booking.price) || 180;
+            
+            document.getElementById('pay-amount-display').innerText = `฿${priceVal.toFixed(2)}`;
+            
+            // ดึงค่าล่าสุดจากฐานข้อมูลแอดมินมาก่อนสร้าง QR
+            await fetchShopSettings();
+            
+            const pNumber = cachedShopPromptPay;
+            // จัดรูปแบบให้สวยงาม (เช่น 0899998888 -> 089-999-8888)
+            let formattedPhone = pNumber;
+            if (pNumber.length === 10) {
+                formattedPhone = `${pNumber.slice(0,3)}-${pNumber.slice(3,6)}-${pNumber.slice(6)}`;
+            }
+
+            document.getElementById('shop-promptpay-number').innerText = formattedPhone;
+            const recShopPhone = document.getElementById('rec-shop-phone');
+            if(recShopPhone) recShopPhone.innerText = formattedPhone;
+            
+            // ใช้ API สำหรับสร้าง PromptPay QR Code มาตรฐาน
+const qrImageUrl = `https://promptpay.io/${pNumber}/${priceVal}.png`;
+            document.getElementById('promptpay-qr-img').src = qrImageUrl;
+
+            document.getElementById('rec-code').innerText = booking.res_code || booking.queue_code || 'SURE-888';
+            document.getElementById('rec-date').innerText = new Date().toLocaleString('th-TH');
+            document.getElementById('rec-name').innerText = booking.name || booking.customer_name || 'ลูกค้าทั่วไป';
+            document.getElementById('rec-phone').innerText = booking.phone || booking.customer_phone || '-';
+            document.getElementById('rec-car').innerText = `${booking.car_model || '-'} (${booking.plate || '-'})`;
+            document.getElementById('rec-service').innerText = booking.service || 'ล้างรถมาตรฐาน';
+            document.getElementById('rec-price').innerText = `฿${priceVal.toFixed(2)}`;
+            document.getElementById('rec-total').innerText = `฿${priceVal.toFixed(2)}`;
+
+            document.getElementById('pay-step-qr').classList.remove('hidden');
+            document.getElementById('pay-step-receipt').classList.add('hidden');
+
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+            activePaymentBooking = null;
+        }
+
+        function confirmPaymentSuccess() {
+            document.getElementById('pay-step-qr').classList.add('hidden');
+            document.getElementById('pay-step-receipt').classList.remove('hidden');
+            showModal('ชำระเงินสำเร็จ', 'รับยอดเงินผ่านพร้อมเพย์เรียบร้อยแล้ว สามารถเลือกขนาดกระดาษและกดพิมพ์ใบเสร็จได้เลย', '💳');
+        }
+
+        function updateReceiptWidth() {
+            const widthVal = document.getElementById('thermal-width-select').value;
+            const receiptArea = document.getElementById('printable-receipt-area');
+            if (receiptArea) {
+                receiptArea.style.width = widthVal;
+                receiptArea.style.setProperty('--receipt-w', widthVal);
+            }
+        }
+
+        function triggerPrintReceipt() {
+            window.print();
+        }
 
         function parsePhotos(photoData) {
             if (!photoData) return [];
@@ -462,15 +732,12 @@ async function renderBookingCard(booking) {
             return [photoData];
         }
 
-        
-
         function initRealtimeSubscription() {
             if (!supabaseClient) return;
             supabaseClient
                 .channel('public:bookings')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bookings' }, payload => {
-                    renderBookingCard(payload.new);
-                    showModal('🚨 มีคิวจองใหม่เข้ามา!', `คุณ ${payload.new.name || payload.new.customer_name || 'ลูกค้า'} (ทะเบียน: ${payload.new.plate || payload.new.license_plate || '-'}) ได้ทำการจองรอบ ${payload.new.time || payload.new.time_slot || 'ด่วน'} เรียบร้อยแล้ว`, '🛎️');
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
+                    fetchBookings();
                 })
                 .subscribe();
         }
@@ -496,64 +763,59 @@ async function renderBookingCard(booking) {
         }
 
         async function updateBookingStatus(id, newStatus) {
-    if (!supabaseClient) return;
-    try {
-        let earnedPointsNotice = '';
+            if (!supabaseClient) return;
+            try {
+                let earnedPointsNotice = '';
 
-        if (newStatus === 'completed') {
-            const { data: booking, error: fetchErr } = await supabaseClient
-                .from('bookings')
-                .select('*')
-                .eq('id', id)
-                .single();
+                if (newStatus === 'completed') {
+                    const { data: booking, error: fetchErr } = await supabaseClient
+                        .from('bookings')
+                        .select('*')
+                        .eq('id', id)
+                        .single();
 
-            if (fetchErr) throw fetchErr;
+                    if (!fetchErr && booking) {
+                        const priceNum = parseFloat(booking.price) || 0;
+                        const customerPhone = booking.phone || booking.customer_phone || booking.tel;
+                        const pointsEarned = Math.floor(priceNum / 10);
 
-            const priceNum = parseFloat(booking.price) || 0;
-            const customerPhone = booking.phone || booking.customer_phone || booking.tel;
-            const pointsEarned = Math.floor(priceNum / 10);
+                        if (customerPhone && pointsEarned > 0) {
+                            const { data: userProfile } = await supabaseClient
+                                .from('users')
+                                .select('id, points, phone')
+                                .eq('phone', customerPhone)
+                                .maybeSingle();
 
-            if (customerPhone && pointsEarned > 0) {
-                const { data: userProfile } = await supabaseClient
-                    .from('users')
-                    .select('id, points, phone')
-                    .eq('phone', customerPhone)
-                    .maybeSingle();
+                            if (userProfile) {
+                                const currentPoints = userProfile.points || 0;
+                                const newPoints = currentPoints + pointsEarned;
 
-                if (userProfile) {
-                    const currentPoints = userProfile.points || 0;
-                    const newPoints = currentPoints + pointsEarned;
+                                await supabaseClient
+                                    .from('users')
+                                    .update({ points: newPoints })
+                                    .eq('phone', customerPhone);
 
-                    const { error: pointErr } = await supabaseClient
-                        .from('users')
-                        .update({ points: newPoints })
-                        .eq('phone', customerPhone);
-
-                    if (!pointErr) {
-                        earnedPointsNotice = `\n(เพิ่มแต้มสะสม +${pointsEarned} แต้ม ให้เบอร์ ${customerPhone})`;
+                                earnedPointsNotice = `\n(เพิ่มแต้มสะสม +${pointsEarned} แต้ม)`;
+                            }
+                        }
                     }
                 }
+
+                const { error } = await supabaseClient
+                    .from('bookings')
+                    .update({ status: newStatus })
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showModal('สำเร็จ', newStatus === 'completed' ? `ส่งมอบงานเรียบร้อย!${earnedPointsNotice}` : 'ย้ายรถเข้าช่องบริการเรียบร้อย', '✨');
+                await fetchBookings();
+
+            } catch (err) {
+                console.error('Update status error:', err);
+                showModal('ผิดพลาด', 'ไม่สามารถอัปเดตสถานะได้: ' + err.message, '❌');
             }
         }
-
-        const { error } = await supabaseClient
-            .from('bookings')
-            .update({ status: newStatus })
-            .eq('id', id);
-
-        if (error) throw error;
-
-        const successMsg = newStatus === 'completed' 
-            ? `ส่งมอบงานเรียบร้อย!${earnedPointsNotice}` 
-            : 'อัปเดตสถานะรถเรียบร้อย';
-
-        showModal('สำเร็จ', successMsg, '✨');
-        fetchBookings();
-    } catch (err) {
-        console.error('Update status error:', err);
-        showModal('ผิดพลาด', 'ไม่สามารถอัปเดตสถานะได้: ' + err.message, '❌');
-    }
-}
 
         function openPhotoModal(bookingId, type) {
             currentBookingIdForPhoto = bookingId;
@@ -684,7 +946,7 @@ async function renderBookingCard(booking) {
                         ? { photo_before: JSON.stringify(uploadedUrls) }
                         : { photo_after: JSON.stringify(uploadedUrls) };
 
-                    const { error: updateError } = await supabaseClient.from('bookings').update(updateData).eq('customer_code', currentBookingIdForPhoto);
+                    const { error: updateError } = await supabaseClient.from('bookings').update(updateData).eq('id', currentBookingIdForPhoto);
                     if (updateError) throw updateError;
                 } catch (err) {
                     console.error('Upload Error:', err);
@@ -726,8 +988,8 @@ async function renderBookingCard(booking) {
                         name: name,
                         phone: phone,
                         car_size: size,
-                        car_model: car, // บันทึกลง car_model เพื่อให้ตรงกับฟอร์มหลัก
-                        car_info: car,  // เผื่อโครงสร้างตารางใช้คอลัมน์นี้
+                        car_model: car,
+                        car_info: car,
                         plate: plate,
                         service: 'ล้างรถด่วนหน้าร้าน',
                         time: 'คิวแทรกด่วน',
@@ -748,46 +1010,8 @@ async function renderBookingCard(booking) {
             if (plateEl) plateEl.value = '';
             
             showModal('เพิ่มคิวสำเร็จ', `เพิ่มรถ Walk-in รหัส ${randomCode} เรียบร้อย`, '✨');
-            fetchBookings();
+            await fetchBookings();
         }
-
-        // ฟังก์ชันเช็กระดับสมาชิกเพื่อคืนค่า class สีพื้นหลังและป้ายกำกับ
-async function getCustomerTierStyle(phone) {
-    const defaultTier = {
-        style: 'border-zinc-700 bg-zinc-900/90', // ทั่วไป (สีขาว/เทาสว่าง)
-        badge: '<span class="text-xs bg-zinc-800 text-zinc-200 border border-zinc-600 px-2.5 py-1 rounded-xl">⚪ สมาชิกทั่วไป</span>'
-    };
-
-    if (!supabaseClient || !phone) return defaultTier;
-
-    const { data: userProfile } = await supabaseClient
-        .from('users')
-        .select('points, tier')
-        .eq('phone', phone)
-        .maybeSingle();
-
-    if (!userProfile) return defaultTier;
-
-    const points = userProfile.points || 0;
-    const tier = userProfile.tier || '';
-
-    // VIP (สีทอง)
-    if (tier === 'VIP' || points >= 500) {
-        return {
-            style: 'border-2 border-amber-400 bg-gradient-to-br from-amber-950/40 via-zinc-900 to-zinc-900 shadow-lg shadow-amber-500/10',
-            badge: '<span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-400/60 px-2.5 py-1 rounded-xl font-bold">🥇 ลูกค้า VIP</span>'
-        };
-    } 
-    // ประจำ (สีเงิน)
-    if (tier === 'Silver' || points >= 200) {
-        return {
-            style: 'border-2 border-slate-300 bg-gradient-to-br from-slate-900/90 via-zinc-900 to-zinc-900 shadow-lg shadow-slate-400/10',
-            badge: '<span class="text-xs bg-slate-300/20 text-slate-100 border border-slate-300/60 px-2.5 py-1 rounded-xl font-bold">🥈 ลูกค้าประจำ</span>'
-        };
-    }
-
-    return defaultTier;
-}
     </script>
 </body>
 </html>
