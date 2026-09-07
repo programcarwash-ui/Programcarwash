@@ -11,7 +11,37 @@
     <style> 
         body { font-family: 'Outfit', sans-serif; background-color: #0b0f19; }
         .neon-glow { box-shadow: 0 0 30px rgba(245, 158, 11, 0.15); }
-        .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .gold-gradient { 
+            background: linear-gradient(135deg, #e5d18e 0%, #c5ac5c 50%, #9d8336 100%) !important; 
+            color: #1f1a0e !important;
+        }
+        /* สไตล์ระดับบัตรสมาชิก */
+        .card-white {
+            background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+            border: 1px solid #3f3f46;
+            color: #f4f4f5;
+        }
+        .card-silver {
+            background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+            box-shadow: 0 0 25px rgba(148, 163, 184, 0.25);
+        }
+        /* คลาสสำหรับบัตร Stainless Gold */
+.card-gold {
+  background: linear-gradient(135deg, #e5d18e 0%, #c5ac5c 50%, #9d8336 100%);
+  color: #1f1a0e; /* สีตัวอักษรโทนเข้มเพื่อให้ตัดกับพื้นหลังสีทองสว่าง */
+  box-shadow: 0 8px 25px rgba(197, 172, 92, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ป้ายสถานะ STAINLESS GOLD มุมขวาบน */
+.badge-stainless-gold {
+  background-color: rgba(0, 0, 0, 0.12);
+  color: #2d2413;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(4px);
+}
     </style>
 </head>
 <body class="text-white min-h-screen flex justify-center items-center p-4 md:p-6">
@@ -76,8 +106,41 @@
             </div>
         </div>
 
-        <!-- STEP 1: เลือกรถและบริการ -->
+        <!-- STEP 1: บัตรสมาชิก + เลือกรถและบริการ -->
         <div id="step-1" class="space-y-6 hidden">
+            
+            <!-- DIGITAL MEMBERSHIP CARD UI -->
+            <div id="member-card" class="p-6 rounded-3xl relative overflow-hidden transition-all duration-500">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <p class="text-xs font-semibold tracking-widest uppercase opacity-75">SURE 88 DIGITAL CARD</p>
+                        <h3 id="card-user-name" class="text-xl font-extrabold mt-1">คุณสมาชิก</h3>
+                    </div>
+                    <span id="card-tier-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-black/20 backdrop-blur-md">WHITE MEMBER</span>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-xs opacity-75">รหัสสมาชิก</p>
+                            <p id="card-cus-code" class="text-base font-mono font-bold">CUS-0000</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs opacity-75">คะแนนสะสม</p>
+                            <p id="card-points" class="text-2xl font-black">0 <span class="text-xs font-normal">PTS</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar สู่ระดับถัดไป -->
+                    <div class="space-y-1">
+                        <div class="w-full bg-black/20 rounded-full h-2 overflow-hidden backdrop-blur-sm">
+                            <div id="card-progress" class="bg-current h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p id="card-next-tier-info" class="text-[11px] text-right font-medium opacity-80">สะสมอีก 300 แต้มเพื่ออัปเกรดเป็น SILVER</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
                 <h2 class="text-sm md:text-base font-bold text-amber-400 tracking-wider uppercase">ข้อมูลรถ & แพ็กเกจบริการ</h2>
                 <span id="welcome-user" class="text-xs md:text-sm text-zinc-400 font-medium"></span>
@@ -190,6 +253,10 @@
                     <span class="text-zinc-300 font-bold">ยอดสุทธิ:</span> 
                     <span id="summary-price" class="font-extrabold text-amber-400 text-base"></span>
                 </div>
+                <div class="flex justify-between text-amber-400 font-semibold border-t border-zinc-900/50 pt-2">
+                    <span>แต้มที่จะได้รับ:</span> 
+                    <span id="summary-earned-points">+0 PTS</span>
+                </div>
             </div>
 
             <button onclick="location.reload()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-4 rounded-2xl text-base transition-all">
@@ -204,7 +271,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoeXVwYmFsdWlmaW96bmt4em9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0OTM3NzgsImV4cCI6MjEwNDA2OTc3OH0.IMPsWjdQMFf2CtsGWx_YqyxUwnDRMiCGVdPAyHzvC0g';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let currentUser = { phone: '', name: '', customerCode: '' };
+        let currentUser = { phone: '', name: '', customerCode: '', points: 0 };
         let pendingAction = null;
         let appliedDiscount = 0;
         let selectedTimeSlot = '';
@@ -216,7 +283,6 @@
             'XL': { p1: 280,  p2: 500,  p3: 2700 }
         };
 
-        // รายการรอบเวลาเปิดบริการตลอดทั้งวัน (Dynamic Hourly Slots)
         const allTimeSlots = [
             "09:00 - 10:00",
             "10:00 - 11:00",
@@ -311,14 +377,14 @@
 
             let { error: insertError } = await supabaseClient
                 .from('users')
-                .insert([{ phone, name, customer_code: customerCode }]);
+                .insert([{ phone, name, customer_code: customerCode, points: 0 }]);
 
             if (insertError) {
                 showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลลงฐานข้อมูลได้', '❌');
                 return;
             }
 
-            currentUser = { phone, name, customerCode };
+            currentUser = { phone, name, customerCode, points: 0 };
             showModal('สมัครสมาชิกสำเร็จ', `รหัสลูกค้าของคุณคือ: ${customerCode}`, '✨', () => {
                 startBooking();
             });
@@ -350,16 +416,71 @@
                 return;
             }
 
-            currentUser = { phone: data.phone, name: data.name, customerCode: data.customer_code };
+            currentUser = { 
+                phone: data.phone, 
+                name: data.name, 
+                customerCode: data.customer_code,
+                points: data.points || 0 
+            };
+            
             showModal('ยินดีต้อนรับกลับ', `ยินดีต้อนรับคุณ ${data.name} (${data.customer_code}) สู่ SURE 88 ครับ`, '🚗', () => {
                 startBooking();
             });
         }
 
+        // แสดงผลบัตรสมาชิกตามระดับสะสมแต้ม (White / Silver / Gold)
+        function renderMemberCard() {
+    const cardEl = document.getElementById('member-card');
+    const pts = currentUser.points || 0;
+    
+    document.getElementById('card-user-name').innerText = currentUser.name;
+    document.getElementById('card-cus-code').innerText = currentUser.customerCode || 'CUS-0000';
+    document.getElementById('card-points').innerHTML = `${pts.toLocaleString()} <span class="text-xs font-normal">PTS</span>`;
+
+    let tierName = 'WHITE MEMBER';
+    let cardClass = 'card-white';
+    let progressPct = 0;
+    let nextTierInfo = '';
+
+    if (pts >= 1000) {
+        tierName = 'STAINLESS GOLD';
+        cardClass = 'card-gold';
+        progressPct = 100;
+        nextTierInfo = '✨ คุณอยู่ในระดับสูงสุด (STAINLESS GOLD)';
+    } else if (pts >= 300) {
+        tierName = 'SILVER VIP';
+        cardClass = 'card-silver';
+        progressPct = ((pts - 300) / 700) * 100;
+        nextTierInfo = `สะสมอีก ${(1000 - pts).toLocaleString()} แต้มเพื่ออัปเกรดเป็น STAINLESS GOLD`;
+    } else {
+        tierName = 'WHITE MEMBER';
+        cardClass = 'card-white';
+        progressPct = (pts / 300) * 100;
+        nextTierInfo = `สะสมอีก ${(300 - pts).toLocaleString()} แต้มเพื่ออัปเกรดเป็น SILVER VIP`;
+    }
+
+    // กำหนด Class ให้การ์ด
+    cardEl.className = `p-6 rounded-3xl relative overflow-hidden transition-all duration-500 ${cardClass}`;
+    
+    // ปรับแต่งข้อความและ Style ป้ายมุมขวาบน
+    const tierBadgeEl = document.getElementById('card-tier-badge');
+    tierBadgeEl.innerText = tierName;
+    if (pts >= 1000) {
+        tierBadgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider badge-stainless-gold';
+    } else {
+        tierBadgeEl.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-black/20 backdrop-blur-md';
+    }
+
+    // อัปเดต หลอดความคืบหน้า (Progress Bar) และข้อความ
+    document.getElementById('card-progress').style.width = `${Math.min(100, Math.max(0, progressPct))}%`;
+    document.getElementById('card-next-tier-info').innerText = nextTierInfo;
+}
+
         function startBooking() {
             document.getElementById('view-auth').classList.add('hidden');
             document.getElementById('step-1').classList.remove('hidden');
             document.getElementById('welcome-user').innerText = `👤 ${currentUser.name} (${currentUser.customerCode || 'สมาชิก'})`;
+            renderMemberCard();
             updatePrices();
         }
 
@@ -394,7 +515,6 @@
             await fetchExistingBookings();
         }
 
-        // Render รอบเวลาโดยนับจำนวนคิวเทียบกับ Max Bays
         function renderTimeSlots(slotCounts = {}, maxBays = 2) {
             const container = document.getElementById('slots-container');
             container.innerHTML = '';
@@ -444,14 +564,12 @@
 
         async function fetchExistingBookings() {
             try {
-                // 1. ดึงข้อมูลการจองทั้งหมด
                 const { data, error } = await supabaseClient
                     .from('bookings')
                     .select('booking_time');
 
                 if (error) throw error;
 
-                // นับจำนวนการจองในแต่ละรอบเวลา
                 const slotCounts = {};
                 if (data) {
                     data.forEach(item => {
@@ -459,7 +577,6 @@
                     });
                 }
 
-                // 2. ดึงค่า Max Bays จากตาราง settings ใน Supabase (ถ้ามี)
                 let maxBays = 2;
                 try {
                     const { data: settingsData } = await supabaseClient
@@ -471,9 +588,7 @@
                     if (settingsData && settingsData.max_bays) {
                         maxBays = parseInt(settingsData.max_bays);
                     }
-                } catch (e) {
-                    // หากยังไม่มีตาราง settings หรือเชื่อมต่อไม่ได้ จะใช้ค่าเริ่มต้นเป็น 2
-                }
+                } catch (e) {}
 
                 renderTimeSlots(slotCounts, maxBays);
             } catch (err) {
@@ -501,9 +616,14 @@
             let basePrice = priceTable[carSize][serviceKeys[selectedServiceIndex]];
             let finalPrice = Math.max(0, basePrice - appliedDiscount);
 
+            // คำนวณแต้มสะสม (ยอดใช้จ่ายทุกๆ 10 บาท = 1 แต้ม)
+            const earnedPoints = Math.floor(finalPrice / 10);
+            const newTotalPoints = (currentUser.points || 0) + earnedPoints;
+
             const resCode = `SURE-${Math.floor(1000 + Math.random() * 9000)}`;
 
-            let { error } = await supabaseClient.from('bookings').insert([{
+            // 1. บันทึกข้อมูลการจอง
+            let { error: bookingError } = await supabaseClient.from('bookings').insert([{
                 res_code: resCode,
                 customer_code: currentUser.customerCode,
                 phone: currentUser.phone,
@@ -518,16 +638,26 @@
                 booking_time: selectedTimeSlot
             }]);
 
-            if(error) {
-                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองลงระบบได้: ' + error.message, '❌');
+            if(bookingError) {
+                showModal('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกการจองลงระบบได้: ' + bookingError.message, '❌');
                 return;
             }
 
+            // 2. อัปเดตคะแนนสะสมของผู้ใช้เข้า Supabase
+            await supabaseClient
+                .from('users')
+                .update({ points: newTotalPoints })
+                .eq('customer_code', currentUser.customerCode);
+
+            currentUser.points = newTotalPoints;
+
+            // แสดงหน้าสรุปผล
             document.getElementById('summary-cus-code').innerText = currentUser.customerCode;
             document.getElementById('summary-name').innerText = currentUser.name;
             document.getElementById('summary-phone').innerText = currentUser.phone;
             document.getElementById('summary-car').innerText = `${carInfo} (${color}) - ${plate}`;
             document.getElementById('summary-time').innerText = selectedTimeSlot;
+            document.getElementById('summary-earned-points').innerText = `+${earnedPoints.toLocaleString()} PTS`;
             
             if(appliedDiscount > 0) {
                 document.getElementById('summary-discount-row').classList.remove('hidden');
