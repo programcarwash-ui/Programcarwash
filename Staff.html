@@ -11,7 +11,10 @@
     <style>
         body { font-family: 'Outfit', sans-serif; background-color: #0b0f19; }
         .neon-glow { box-shadow: 0 0 30px rgba(245, 158, 11, 0.15); }
-        .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .gold-gradient { 
+  background: linear-gradient(135deg, #e5d18e 0%, #c5ac5c 50%, #9d8336 100%) !important; 
+  color: #1f1a0e !important;
+}
     </style>
 </head>
 <body class="text-white min-h-screen p-4 md:p-8">
@@ -302,29 +305,151 @@
             }
         }
 
-        async function fetchBookings() {
-            if (!supabaseClient) return;
-            try {
-                const { data, error } = await supabaseClient
-                    .from('bookings')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+ async function fetchBookings() {
+    if (!supabaseClient) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('bookings')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-                if (error) throw error;
+        if (error) throw error;
 
-                const container = document.getElementById('queue-container');
-                if (!container) return;
-                container.innerHTML = '';
+        const container = document.getElementById('queue-container');
+        if (!container) return;
+        container.innerHTML = '';
 
-                if (data && data.length > 0) {
-                    data.forEach(booking => renderBookingCard(booking));
-                } else {
-                    container.innerHTML = `<div class="col-span-full text-center py-12 text-zinc-400 text-sm font-medium">ยังไม่มีรายการคิวในระบบ</div>`;
-                }
-            } catch (err) {
-                console.error('Fetch error:', err);
+        if (data && data.length > 0) {
+            for (let i = data.length - 1; i >= 0; i--) {
+                await renderBookingCard(data[i]);
+            }
+        } else {
+            container.innerHTML = `<div class="col-span-full text-center py-12 text-zinc-400 text-sm font-medium">ยังไม่มีรายการคิวในระบบ</div>`;
+        }
+    } catch (err) {
+        console.error('Fetch error:', err);
+    }
+}
+// ใช้ฟังก์ชันนี้เพียงชุดเดียว (มีระบบเช็ก VIP)
+async function renderBookingCard(booking) {
+    const container = document.getElementById('queue-container');
+    if (!container) return;
+    const cardId = booking.id;
+    
+    const code = booking.res_code || booking.queue_code || 'SURE-XXXX';
+    const name = booking.name || booking.customer_name || booking.fullname || 'ลูกค้าทั่วไป';
+    const phone = booking.phone || booking.customer_phone || booking.tel || '-';
+    const size = booking.car_size || booking.size || 'M';
+    
+    const carDetail = booking.car_model || booking.car_info || booking.model || booking.car || booking.brand || booking.vehicle || booking.vehicle_model || '-';
+    const licensePlate = booking.plate || booking.license_plate || booking.car_plate || '-';
+    const timeSlot = booking.time || booking.time_slot || booking.booking_time || 'คิวหน้าร้าน / Walk-in';
+    const price = booking.price || '180';
+    const service = booking.service || booking.service_name || 'ล้างรถมาตรฐาน';
+    const status = booking.status || 'pending';
+    
+    const beforeList = parsePhotos(booking.photo_before || booking.before_photos || booking.car_photo_url);
+    const afterList = parsePhotos(booking.photo_after || booking.after_photos || booking.after_photo_url);
+
+   let tierStyle = 'border border-zinc-800 bg-zinc-900/90 text-white'; 
+    let tierBadge = '<span class="text-xs bg-zinc-800 text-zinc-300 border border-zinc-700 px-2.5 py-1 rounded-xl">⚪ WHITE MEMBER</span>';
+
+    if (supabaseClient) {
+        let userProfile = null;
+
+        if (phone && phone !== '-') {
+            const { data } = await supabaseClient
+                .from('users')
+                .select('points, tier')
+                .eq('phone', phone)
+                .maybeSingle();
+            userProfile = data;
+        }
+
+        if (!userProfile && name && name !== 'ลูกค้าทั่วไป') {
+            const { data } = await supabaseClient
+                .from('users')
+                .select('points, tier')
+                .eq('name', name)
+                .maybeSingle();
+            userProfile = data;
+        }
+
+        if (userProfile) {
+            const points = userProfile.points || 0;
+            const tier = userProfile.tier || '';
+
+            if (tier === 'STAINLESS GOLD' || points >= 1000) {
+                // พื้นหลังทองเข้มพรีเมียม (Gold Theme)
+                tierStyle = 'border-2 border-[#c5ac5c] bg-gradient-to-br from-[#3d331a] via-zinc-900 to-zinc-950 shadow-xl shadow-[#c5ac5c]/20 text-white';
+                tierBadge = '<span class="text-xs bg-[#c5ac5c]/30 text-[#e5d18e] border border-[#c5ac5c] px-2.5 py-1 rounded-xl font-bold">🥇 STAINLESS GOLD</span>';
+            } else if (tier === 'SILVER VIP' || (points >= 300 && points < 1000)) {
+                // พื้นหลังเทาเงินเข้ม (Silver Theme แบบในบัตร)
+                tierStyle = 'border-2 border-slate-400 bg-gradient-to-br from-[#2a2f38] via-zinc-900 to-zinc-950 shadow-xl shadow-slate-400/20 text-white';
+                tierBadge = '<span class="text-xs bg-slate-300/30 text-slate-100 border border-slate-400 px-2.5 py-1 rounded-xl font-bold">🥈 SILVER VIP</span>';
             }
         }
+    }
+
+    let statusText = '⏳ รอคิวหน้าร้าน / จองออนไลน์';
+    let statusBadgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+    if (status === 'washing') {
+        statusText = '🚗 กำลังล้าง / ทำความสะอาด';
+        statusBadgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20 animate-pulse';
+    } else if (status === 'coating') {
+        statusText = '✨ กำลังเคลือบสี / อบเซรามิก';
+        statusBadgeClass = 'bg-purple-500/10 text-purple-400 border-purple-500/20 animate-pulse';
+    } else if (status === 'completed') {
+        statusText = '✅ เสร็จสิ้น พร้อมส่งมอบ';
+        statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+    }
+
+    const card = document.createElement('div');
+    card.className = `booking-card ${tierStyle} p-6 rounded-3xl space-y-4 transition-all ${status === 'completed' ? 'opacity-70' : ''}`;
+    card.setAttribute('data-id', cardId);
+    card.innerHTML = `
+        <div class="flex justify-between items-start">
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-xs font-mono font-bold">${code}</span>
+                    ${tierBadge}
+                </div>
+                <h3 class="card-name text-base font-bold text-white mt-2.5">${name}</h3>
+                <p class="text-sm text-amber-300 font-medium mt-0.5">📞 โทร: <a href="tel:${phone}" class="underline">${phone}</a></p>
+            </div>
+            <div class="text-right">
+                <span class="text-xs bg-zinc-950 border border-zinc-800 px-3.5 py-2 rounded-xl text-amber-400 font-bold block">${timeSlot}</span>
+            </div>
+        </div>
+        <div class="text-sm text-zinc-200 bg-zinc-950 p-4 rounded-2xl border border-zinc-800 space-y-2">
+            <div class="flex justify-between items-center">
+                <span class="text-amber-400 font-semibold">🚗 รุ่นรถ: <strong class="text-white">${carDetail}</strong></span>
+                <span class="text-amber-400 font-bold text-base">฿${price}</span>
+            </div>
+            <div class="text-amber-300 font-medium text-xs">🏷️ ป้ายทะเบียน: ${licensePlate} (ไซส์ ${size})</div>
+        </div>
+        <div class="text-xs text-zinc-400 font-medium">บริการ: ${service}</div>
+        <div>
+            <span class="text-xs px-3 py-2 rounded-xl border block text-center font-bold ${statusBadgeClass}">สถานะปัจจุบัน: ${statusText}</span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2 text-xs text-zinc-300 bg-zinc-950 p-3 rounded-2xl border border-zinc-800">
+            <div>📸 รูปรับรถ: ${beforeList.length > 0 ? `<span class="text-emerald-400 font-bold">✓ บันทึกแล้ว (${beforeList.length}/4)</span>` : '<span class="text-amber-400 font-medium">⏳ ยังไม่ถ่าย</span>'}</div>
+            <div>✨ รูปส่งรถ: ${afterList.length > 0 ? `<span class="text-emerald-400 font-bold">✓ บันทึกแล้ว (${afterList.length}/4)</span>` : '<span class="text-amber-400 font-medium">⏳ ยังไม่ถ่าย</span>'}</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 pt-1">
+            <button onclick="checkAndStartWashing('${cardId}', ${beforeList.length})" class="bg-blue-500/15 text-blue-400 border border-blue-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-blue-500/25 transition-all">🚗 เริ่มล้าง</button>
+            <button onclick="updateBookingStatus('${cardId}', 'coating')" class="bg-purple-500/15 text-purple-400 border border-purple-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-purple-500/25 transition-all">✨ เคลือบสี</button>
+            <button onclick="checkAndCompleteJob('${cardId}', ${afterList.length})" class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-500/25 transition-all">✅ ส่งมอบ</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="openPhotoModal('${cardId}', 'before')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">📸 ถ่ายรูปรถรับรถ (1-4 รูป)</button>
+            <button onclick="openPhotoModal('${cardId}', 'after')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">✨ ถ่ายรูปรถส่งรถ (1-4 รูป)</button>
+        </div>
+    `;
+    container.prepend(card);
+}
 
         function parsePhotos(photoData) {
             if (!photoData) return [];
@@ -337,85 +462,7 @@
             return [photoData];
         }
 
-        function renderBookingCard(booking) {
-            const container = document.getElementById('queue-container');
-            if (!container) return;
-            const cardId = booking.id;
-            
-            const code = booking.res_code || booking.queue_code || 'SURE-XXXX';
-            const name = booking.name || booking.customer_name || booking.fullname || 'ลูกค้าทั่วไป';
-            const phone = booking.phone || booking.customer_phone || booking.tel || '-';
-            const size = booking.car_size || booking.size || 'M';
-            
-            // รองรับชื่อคอลัมน์รุ่นรถทุกรูปแบบที่เป็นไปได้ใน Supabase
-            const carDetail = booking.car_model || booking.car_info || booking.model || booking.car || booking.brand || booking.vehicle || booking.vehicle_model || '-';
-            
-            const licensePlate = booking.plate || booking.license_plate || booking.car_plate || '-';
-            const timeSlot = booking.time || booking.time_slot || booking.booking_time || 'คิวหน้าร้าน / Walk-in';
-            const price = booking.price || '180';
-            const service = booking.service || booking.service_name || 'ล้างรถมาตรฐาน';
-            const status = booking.status || 'pending';
-            
-            const beforeList = parsePhotos(booking.photo_before || booking.before_photos || booking.car_photo_url);
-            const afterList = parsePhotos(booking.photo_after || booking.after_photos || booking.after_photo_url);
-
-            let statusText = '⏳ รอคิวหน้าร้าน / จองออนไลน์';
-            let statusBadgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-            if (status === 'washing') {
-                statusText = '🚗 กำลังล้าง / ทำความสะอาด';
-                statusBadgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20 animate-pulse';
-            } else if (status === 'coating') {
-                statusText = '✨ กำลังเคลือบสี / อบเซรามิก';
-                statusBadgeClass = 'bg-purple-500/10 text-purple-400 border-purple-500/20 animate-pulse';
-            } else if (status === 'completed') {
-                statusText = '✅ เสร็จสิ้น พร้อมส่งมอบ';
-                statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-            }
-
-            const card = document.createElement('div');
-            card.className = `booking-card bg-zinc-900/90 border border-zinc-800 p-6 rounded-3xl space-y-4 hover:border-amber-500/40 transition-all ${status === 'completed' ? 'opacity-70' : ''}`;
-            card.setAttribute('data-id', cardId);
-            card.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 rounded-xl text-xs font-mono font-bold">${code}</span>
-                        <h3 class="card-name text-base font-bold text-white mt-2.5">${name}</h3>
-                        <p class="text-sm text-amber-300 font-medium mt-0.5">📞 โทร: <a href="tel:${phone}" class="underline">${phone}</a></p>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs bg-zinc-950 border border-zinc-800 px-3.5 py-2 rounded-xl text-amber-400 font-bold block">${timeSlot}</span>
-                    </div>
-                </div>
-                <div class="text-sm text-zinc-200 bg-zinc-950 p-4 rounded-2xl border border-zinc-800 space-y-2">
-                    <div class="flex justify-between items-center">
-                        <span class="text-amber-400 font-semibold">🚗 รุ่นรถ: <strong class="text-white">${carDetail}</strong></span>
-                        <span class="text-amber-400 font-bold text-base">฿${price}</span>
-                    </div>
-                    <div class="text-amber-300 font-medium text-xs">🏷️ ป้ายทะเบียน: ${licensePlate} (ไซส์ ${size})</div>
-                </div>
-                <div class="text-xs text-zinc-400 font-medium">บริการ: ${service}</div>
-                <div>
-                    <span class="text-xs px-3 py-2 rounded-xl border block text-center font-bold ${statusBadgeClass}">สถานะปัจจุบัน: ${statusText}</span>
-                </div>
-                
-                <!-- แสดงสถานะรูปถ่าย (รองรับสูงสุด 4 รูป) -->
-                <div class="grid grid-cols-2 gap-2 text-xs text-zinc-300 bg-zinc-950 p-3 rounded-2xl border border-zinc-800">
-                    <div>📸 รูปรับรถ: ${beforeList.length > 0 ? `<span class="text-emerald-400 font-bold">✓ บันทึกแล้ว (${beforeList.length}/4)</span>` : '<span class="text-amber-400 font-medium">⏳ ยังไม่ถ่าย</span>'}</div>
-                    <div>✨ รูปส่งรถ: ${afterList.length > 0 ? `<span class="text-emerald-400 font-bold">✓ บันทึกแล้ว (${afterList.length}/4)</span>` : '<span class="text-amber-400 font-medium">⏳ ยังไม่ถ่าย</span>'}</div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2 pt-1">
-                    <button onclick="checkAndStartWashing('${cardId}', ${beforeList.length})" class="bg-blue-500/15 text-blue-400 border border-blue-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-blue-500/25 transition-all">🚗 เริ่มล้าง</button>
-                    <button onclick="updateBookingStatus('${cardId}', 'coating')" class="bg-purple-500/15 text-purple-400 border border-purple-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-purple-500/25 transition-all">✨ เคลือบสี</button>
-                    <button onclick="checkAndCompleteJob('${cardId}', ${afterList.length})" class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 py-3 rounded-2xl text-xs font-bold hover:bg-emerald-500/25 transition-all">✅ ส่งมอบ</button>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="openPhotoModal('${cardId}', 'before')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">📸 ถ่ายรูปรถรับรถ (1-4 รูป)</button>
-                    <button onclick="openPhotoModal('${cardId}', 'after')" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 py-3 rounded-2xl text-xs font-bold transition-all">✨ ถ่ายรูปรถส่งรถ (1-4 รูป)</button>
-                </div>
-            `;
-            container.prepend(card);
-        }
+        
 
         function initRealtimeSubscription() {
             if (!supabaseClient) return;
@@ -449,21 +496,64 @@
         }
 
         async function updateBookingStatus(id, newStatus) {
-            if(!supabaseClient) return;
-            try {
-                const { error } = await supabaseClient
-                    .from('bookings')
-                    .update({ status: newStatus })
-                    .eq('id', id);
+    if (!supabaseClient) return;
+    try {
+        let earnedPointsNotice = '';
 
-                if (error) throw error;
-                showModal('สำเร็จ', 'อัปเดตสถานะรถเรียบร้อย', '✨');
-                fetchBookings();
-            } catch (err) {
-                console.error('Update status error:', err);
-                showModal('ผิดพลาด', 'ไม่สามารถอัปเดตสถานะได้: ' + err.message, '❌');
+        if (newStatus === 'completed') {
+            const { data: booking, error: fetchErr } = await supabaseClient
+                .from('bookings')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (fetchErr) throw fetchErr;
+
+            const priceNum = parseFloat(booking.price) || 0;
+            const customerPhone = booking.phone || booking.customer_phone || booking.tel;
+            const pointsEarned = Math.floor(priceNum / 10);
+
+            if (customerPhone && pointsEarned > 0) {
+                const { data: userProfile } = await supabaseClient
+                    .from('users')
+                    .select('id, points, phone')
+                    .eq('phone', customerPhone)
+                    .maybeSingle();
+
+                if (userProfile) {
+                    const currentPoints = userProfile.points || 0;
+                    const newPoints = currentPoints + pointsEarned;
+
+                    const { error: pointErr } = await supabaseClient
+                        .from('users')
+                        .update({ points: newPoints })
+                        .eq('phone', customerPhone);
+
+                    if (!pointErr) {
+                        earnedPointsNotice = `\n(เพิ่มแต้มสะสม +${pointsEarned} แต้ม ให้เบอร์ ${customerPhone})`;
+                    }
+                }
             }
         }
+
+        const { error } = await supabaseClient
+            .from('bookings')
+            .update({ status: newStatus })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        const successMsg = newStatus === 'completed' 
+            ? `ส่งมอบงานเรียบร้อย!${earnedPointsNotice}` 
+            : 'อัปเดตสถานะรถเรียบร้อย';
+
+        showModal('สำเร็จ', successMsg, '✨');
+        fetchBookings();
+    } catch (err) {
+        console.error('Update status error:', err);
+        showModal('ผิดพลาด', 'ไม่สามารถอัปเดตสถานะได้: ' + err.message, '❌');
+    }
+}
 
         function openPhotoModal(bookingId, type) {
             currentBookingIdForPhoto = bookingId;
@@ -594,7 +684,7 @@
                         ? { photo_before: JSON.stringify(uploadedUrls) }
                         : { photo_after: JSON.stringify(uploadedUrls) };
 
-                    const { error: updateError } = await supabaseClient.from('bookings').update(updateData).eq('id', currentBookingIdForPhoto);
+                    const { error: updateError } = await supabaseClient.from('bookings').update(updateData).eq('customer_code', currentBookingIdForPhoto);
                     if (updateError) throw updateError;
                 } catch (err) {
                     console.error('Upload Error:', err);
@@ -660,6 +750,44 @@
             showModal('เพิ่มคิวสำเร็จ', `เพิ่มรถ Walk-in รหัส ${randomCode} เรียบร้อย`, '✨');
             fetchBookings();
         }
+
+        // ฟังก์ชันเช็กระดับสมาชิกเพื่อคืนค่า class สีพื้นหลังและป้ายกำกับ
+async function getCustomerTierStyle(phone) {
+    const defaultTier = {
+        style: 'border-zinc-700 bg-zinc-900/90', // ทั่วไป (สีขาว/เทาสว่าง)
+        badge: '<span class="text-xs bg-zinc-800 text-zinc-200 border border-zinc-600 px-2.5 py-1 rounded-xl">⚪ สมาชิกทั่วไป</span>'
+    };
+
+    if (!supabaseClient || !phone) return defaultTier;
+
+    const { data: userProfile } = await supabaseClient
+        .from('users')
+        .select('points, tier')
+        .eq('phone', phone)
+        .maybeSingle();
+
+    if (!userProfile) return defaultTier;
+
+    const points = userProfile.points || 0;
+    const tier = userProfile.tier || '';
+
+    // VIP (สีทอง)
+    if (tier === 'VIP' || points >= 500) {
+        return {
+            style: 'border-2 border-amber-400 bg-gradient-to-br from-amber-950/40 via-zinc-900 to-zinc-900 shadow-lg shadow-amber-500/10',
+            badge: '<span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-400/60 px-2.5 py-1 rounded-xl font-bold">🥇 ลูกค้า VIP</span>'
+        };
+    } 
+    // ประจำ (สีเงิน)
+    if (tier === 'Silver' || points >= 200) {
+        return {
+            style: 'border-2 border-slate-300 bg-gradient-to-br from-slate-900/90 via-zinc-900 to-zinc-900 shadow-lg shadow-slate-400/10',
+            badge: '<span class="text-xs bg-slate-300/20 text-slate-100 border border-slate-300/60 px-2.5 py-1 rounded-xl font-bold">🥈 ลูกค้าประจำ</span>'
+        };
+    }
+
+    return defaultTier;
+}
     </script>
 </body>
 </html>
