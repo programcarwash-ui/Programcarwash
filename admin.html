@@ -3,37 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SURE 88 Admin Dashboard - Dynamic Services Version</title>
+    <title>SURE 88 Admin Dashboard - Stainless Gold Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style> 
         body { font-family: 'Outfit', sans-serif; background-color: #0b0f19; }
-        .neon-glow { box-shadow: 0 0 30px rgba(245, 158, 11, 0.1); }
-        .gold-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .neon-glow { box-shadow: 0 0 30px rgba(207, 174, 93, 0.12); }
+        .gold-gradient { background: linear-gradient(135deg, #f5e4ab 0%, #cfae5d 50%, #9a7b38 100%); }
+        .gold-text-gradient { 
+            background: linear-gradient(135deg, #f8e7b5 0%, #d8b765 50%, #a38238 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #18181b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+        ::-webkit-scrollbar-thumb:hover { background: #cfae5d; }
     </style>
 </head>
 <body class="text-white min-h-screen p-4 md:p-6 flex justify-center items-start">
 
     <!-- MODAL POPUP -->
     <div id="custom-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-zinc-950 border border-amber-500/30 w-full max-w-md rounded-3xl p-6 text-center neon-glow transform transition-all scale-95 opacity-0 duration-300" id="modal-box">
+        <div class="bg-zinc-950 border border-[#cfae5d]/30 w-full max-w-md rounded-3xl p-6 text-center neon-glow transform transition-all scale-95 opacity-0 duration-300" id="modal-box">
             <div id="modal-icon" class="text-4xl mb-3">✨</div>
-            <h3 id="modal-title" class="text-lg font-bold text-amber-400 mb-1">แจ้งเตือน</h3>
+            <h3 id="modal-title" class="text-lg font-bold text-[#e2c879] mb-1">แจ้งเตือน</h3>
             <p id="modal-message" class="text-sm text-zinc-300 mb-6 leading-relaxed">ข้อความแจ้งเตือน</p>
-            <button onclick="closeModal()" class="w-full gold-gradient text-zinc-950 font-bold py-3 rounded-2xl text-sm shadow-lg hover:opacity-90 transition-all cursor-pointer">ตกลง</button>
+            <div id="modal-actions" class="flex gap-3">
+                <button id="modal-cancel-btn" onclick="closeModal(false)" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-3 rounded-2xl text-sm transition-all cursor-pointer hidden">ยกเลิก</button>
+                <button id="modal-confirm-btn" onclick="closeModal(true)" class="w-full gold-gradient text-zinc-950 font-bold py-3 rounded-2xl text-sm shadow-lg hover:opacity-90 transition-all cursor-pointer">ตกลง</button>
+            </div>
         </div>
     </div>
 
     <!-- PHOTO ZOOM MODAL -->
     <div id="photo-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 hidden">
         <button onclick="closePhotoModal()" class="absolute top-6 right-6 text-white bg-zinc-800 hover:bg-zinc-700 w-10 h-10 rounded-full font-bold text-lg flex items-center justify-center transition-all cursor-pointer">✕</button>
-        <img id="zoomed-photo" src="" class="max-w-full max-h-[80vh] object-contain rounded-2xl border border-amber-500/30 shadow-2xl mb-4">
-        <p id="zoomed-caption" class="text-sm text-amber-400 font-semibold tracking-wide"></p>
+        <img id="zoomed-photo" src="" class="max-w-full max-h-[80vh] object-contain rounded-2xl border border-[#cfae5d]/30 shadow-2xl mb-4">
+        <p id="zoomed-caption" class="text-sm text-[#e2c879] font-semibold tracking-wide"></p>
     </div>
 
     <div class="w-full max-w-7xl bg-zinc-900/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-2xl border border-zinc-800 neon-glow">
@@ -41,23 +49,25 @@
         <!-- HEADER -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-zinc-800 pb-6 gap-4">
             <div>
-                <span class="text-2xl md:text-3xl font-extrabold tracking-wider bg-gradient-to-r from-amber-400 via-orange-300 to-amber-500 bg-clip-text text-transparent">SURE 88 CAR WASH</span>
-                <p class="text-xs text-zinc-400 uppercase tracking-widest mt-1">Admin Control Center (Dynamic Services)</p>
+                <span class="text-2xl md:text-3xl font-extrabold tracking-wider gold-text-gradient">SURE 88 CAR WASH</span>
+                <p class="text-xs text-zinc-400 uppercase tracking-widest mt-1">Admin Control Center (Stainless Gold Edition)</p>
             </div>
             <div class="flex items-center gap-3">
-                <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-4 py-2 rounded-2xl font-semibold flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span> เชื่อมต่อ Supabase แล้ว
+                <span class="text-xs bg-[#cfae5d]/10 text-[#e2c879] border border-[#cfae5d]/20 px-4 py-2 rounded-2xl font-semibold flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#e2c879] animate-pulse"></span> เชื่อมต่อ Supabase แล้ว
                 </span>
             </div>
         </div>
 
         <!-- NAVIGATION TABS -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-zinc-950 p-2 rounded-2xl mb-8 border border-zinc-800 text-center">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 bg-zinc-950 p-2 rounded-2xl mb-8 border border-zinc-800 text-center">
             <button onclick="switchTab('reports')" id="tab-reports" class="py-3 text-xs md:text-sm font-bold rounded-xl gold-gradient text-zinc-950 transition-all shadow-md cursor-pointer">📊 รายงานยอดขาย</button>
+            <button onclick="switchTab('members')" id="tab-members" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">👥 ข้อมูลลูกค้า & คะแนน</button>
             <button onclick="switchTab('customers')" id="tab-customers" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">🔍 ประวัติลูกค้า</button>
             <button onclick="switchTab('staff')" id="tab-staff" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">👨‍💼 จัดการพนักงาน</button>
             <button onclick="switchTab('prices')" id="tab-prices" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">💰 ราคาและช่องบริการ</button>
             <button onclick="switchTab('promos')" id="tab-promos" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">🎟️ โค้ดส่วนลด</button>
+            <button onclick="switchTab('cards')" id="tab-cards" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">💳 ตั้งค่าบัตรสมาชิก</button>
         </div>
 
         <!-- SECTION 1: REPORTS -->
@@ -66,7 +76,7 @@
                 <div class="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
                     <div>
                         <p class="text-xs text-zinc-400 font-medium">ยอดขายรวมตามตัวกรอง</p>
-                        <h3 id="stat-revenue" class="text-2xl md:text-3xl font-extrabold text-amber-400 mt-2">฿0</h3>
+                        <h3 id="stat-revenue" class="text-2xl md:text-3xl font-extrabold text-[#e2c879] mt-2">฿0</h3>
                     </div>
                     <p class="text-[10px] text-zinc-500 mt-3">คำนวณจากคิวในระบบ Supabase</p>
                 </div>
@@ -80,7 +90,7 @@
                 <div class="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between space-y-3">
                     <div>
                         <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-amber-400">💾 สถานะความจุฐานข้อมูล</span>
+                            <span class="text-xs font-bold text-[#e2c879]">💾 สถานะความจุฐานข้อมูล</span>
                             <span id="db-status-badge" class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">ปกติ</span>
                         </div>
                         <p id="db-capacity-text" class="text-xs text-zinc-300 mt-2">กำลังตรวจสอบความจุ...</p>
@@ -94,7 +104,7 @@
             <!-- FILTERS -->
             <div class="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-2 w-full md:w-auto">
-                    <span class="text-xs font-bold text-amber-400 whitespace-nowrap">📅 มุมมองรายงาน:</span>
+                    <span class="text-xs font-bold text-[#e2c879] whitespace-nowrap">📅 มุมมองรายงาน:</span>
                     <div class="flex gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
                         <button onclick="setReportMode('daily')" id="mode-daily" class="px-3 py-1.5 text-xs font-bold rounded-lg gold-gradient text-zinc-950 transition-all cursor-pointer">รายวัน</button>
                         <button onclick="setReportMode('monthly')" id="mode-monthly" class="px-3 py-1.5 text-xs font-bold rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer">รายเดือน</button>
@@ -107,7 +117,7 @@
             <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-4">
                 <div class="flex justify-between items-center">
                     <h4 class="text-sm font-bold text-zinc-200">📋 รายละเอียดคิว สถานะ และรูปภาพผลงาน (Admin View)</h4>
-                    <span id="report-period-label" class="text-xs text-amber-400 font-semibold">กำลังโหลด...</span>
+                    <span id="report-period-label" class="text-xs text-[#e2c879] font-semibold">กำลังโหลด...</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
@@ -130,12 +140,48 @@
             </div>
         </div>
 
+        <!-- NEW SECTION: MEMBERS & POINTS MANAGEMENT -->
+        <div id="section-members" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <p class="text-xs text-zinc-400 font-medium">ลูกค้าในระบบทั้งหมด</p>
+                        <h3 id="stat-total-members" class="text-2xl md:text-3xl font-extrabold text-[#e2c879] mt-2">0 คน</h3>
+                    </div>
+                    <p class="text-[10px] text-zinc-500 mt-3">จำนวนสมาชิกที่ลงทะเบียนไว้</p>
+                </div>
+            </div>
+
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h4 class="text-sm font-bold text-zinc-200">👥 รายชื่อสมาชิก และ การจัดการคะแนน</h4>
+                    <input type="text" id="member-search-input" onkeyup="filterMemberList()" placeholder="ค้นหาชื่อ หรือ เบอร์โทรลูกค้า..." class="p-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-white outline-none focus:border-[#cfae5d] w-full md:w-64">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-zinc-800 text-zinc-400">
+                                <th class="p-3">รหัสลูกค้า / ชื่อ</th>
+                                <th class="p-3">เบอร์โทรศัพท์</th>
+                                <th class="p-3 text-center">คะแนนปัจจุบัน</th>
+                                <th class="p-3 text-center">ปรับแต่งคะแนน</th>
+                                <th class="p-3 text-right">การดำเนินการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="members-table-body" class="divide-y divide-zinc-900">
+                            <tr><td colspan="5" class="text-center text-zinc-500 py-8">กำลังดึงข้อมูลสมาชิก...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- SECTION 2: CUSTOMER HISTORY -->
         <div id="section-customers" class="space-y-6 hidden">
             <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-4">
-                <h4 class="text-sm font-bold text-amber-400">🔍 ค้นหาประวัติลูกค้า</h4>
+                <h4 class="text-sm font-bold text-[#e2c879]">🔍 ค้นหาประวัติลูกค้า</h4>
                 <div class="flex gap-3">
-                    <input type="text" id="search-input" placeholder="พิมพ์เบอร์มือถือ หรือ ป้ายทะเบียนรถ หรือ ชื่อลูกค้า..." class="flex-1 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white outline-none focus:border-amber-500">
+                    <input type="text" id="search-input" placeholder="พิมพ์เบอร์มือถือ หรือ ป้ายทะเบียนรถ หรือ ชื่อลูกค้า..." class="flex-1 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white outline-none focus:border-[#cfae5d]">
                     <button onclick="searchCustomerHistory()" class="gold-gradient text-zinc-950 font-bold px-6 py-3.5 rounded-xl text-sm shadow-lg hover:opacity-90 transition-all cursor-pointer">ค้นหาข้อมูล</button>
                 </div>
             </div>
@@ -152,15 +198,15 @@
         <div id="section-staff" class="space-y-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-4 md:col-span-1">
-                    <h4 class="text-sm font-bold text-amber-400">➕ เพิ่มพนักงานใหม่</h4>
+                    <h4 class="text-sm font-bold text-[#e2c879]">➕ เพิ่มพนักงานใหม่</h4>
                     <p class="text-xs text-zinc-500">พนักงานจะใช้เบอร์โทรศัพท์นี้ในการ Login เข้าสู่ระบบหน้างาน</p>
                     <div>
                         <label class="text-xs text-zinc-400">ชื่อ - นามสกุล หรือชื่อเล่นพนักงาน</label>
-                        <input type="text" id="new-staff-name" placeholder="เช่น ช่างบอย ล้างรถ" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-amber-500">
+                        <input type="text" id="new-staff-name" placeholder="เช่น ช่างบอย ล้างรถ" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-[#cfae5d]">
                     </div>
                     <div>
                         <label class="text-xs text-zinc-400">เบอร์โทรศัพท์ (ใช้ Login)</label>
-                        <input type="text" id="new-staff-phone" placeholder="เช่น 0891234567" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-amber-500">
+                        <input type="text" id="new-staff-phone" placeholder="เช่น 0891234567" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-[#cfae5d]">
                     </div>
                     <button onclick="addNewStaff()" class="w-full gold-gradient hover:opacity-90 text-zinc-950 font-bold py-3.5 rounded-xl text-xs transition-all shadow-lg cursor-pointer">
                         บันทึกเพิ่มพนักงาน
@@ -176,15 +222,15 @@
             </div>
         </div>
 
-        <!-- SECTION 4: PRICE & BAY MANAGEMENT (DYNAMIC SERVICES ADDER) -->
+        <!-- SECTION 4: PRICE & BAY MANAGEMENT -->
         <div id="section-prices" class="space-y-6 hidden">
             <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-4">
                 <div>
-                    <h4 class="text-sm font-bold text-amber-400">⚙️ ตั้งค่าจำนวนช่องบริการสูงสุด (Max Bays)</h4>
+                    <h4 class="text-sm font-bold text-[#e2c879]">⚙️ ตั้งค่าจำนวนช่องบริการสูงสุด (Max Bays)</h4>
                     <p class="text-xs text-zinc-500 mt-1">กำหนดว่าใน 1 รอบเวลา รองรับรถพร้อมกันได้กี่ช่อง</p>
                 </div>
                 <div class="flex gap-3">
-                    <input type="number" id="max-bays-input" placeholder="เช่น 2" class="flex-1 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-sm outline-none focus:border-amber-500">
+                    <input type="number" id="max-bays-input" placeholder="เช่น 2" class="flex-1 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-sm outline-none focus:border-[#cfae5d]">
                     <button onclick="updateMaxBays()" class="gold-gradient text-zinc-950 font-bold px-6 py-3.5 rounded-xl text-sm shadow-lg hover:opacity-90 transition-all cursor-pointer">บันทึกช่องบริการ</button>
                 </div>
             </div>
@@ -192,20 +238,20 @@
             <!-- DYNAMIC SERVICE ADDER BOX -->
             <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-4">
                 <div>
-                    <h4 class="text-sm font-bold text-amber-400">🛠️ เพิ่มบริการใหม่ด้วยตัวเอง</h4>
+                    <h4 class="text-sm font-bold text-[#e2c879]">🛠️ เพิ่มบริการใหม่ด้วยตัวเอง</h4>
                     <p class="text-xs text-zinc-500 mt-1">คุณสามารถสร้างบริการใหม่ได้เอง (ระบบจะเพิ่มช่องกรอกราคาให้ทุกไซส์รถอัตโนมัติ)</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                        <label class="text-xs text-zinc-400 block mb-1">รหัสรหัสบริการ (Key เช่น p4, engine)</label>
-                        <input type="text" id="new-service-key" placeholder="เช่น p4" class="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-amber-500">
+                        <label class="text-xs text-zinc-400 block mb-1">รหัสบริการ (Key เช่น p4, engine)</label>
+                        <input type="text" id="new-service-key" placeholder="เช่น p4" class="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-[#cfae5d]">
                     </div>
                     <div>
                         <label class="text-xs text-zinc-400 block mb-1">ชื่อบริการภาษาไทย</label>
-                        <input type="text" id="new-service-name" placeholder="เช่น ล้างห้องเครื่อง" class="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-amber-500">
+                        <input type="text" id="new-service-name" placeholder="เช่น ล้างห้องเครื่อง" class="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-[#cfae5d]">
                     </div>
                     <div class="flex items-end">
-                        <button onclick="addNewCustomService()" class="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg cursor-pointer">
+                        <button onclick="addNewCustomService()" class="w-full gold-gradient hover:opacity-90 text-zinc-950 font-bold py-3 rounded-xl text-xs transition-all shadow-lg cursor-pointer">
                             ➕ เพิ่มบริการนี้เข้าระบบ
                         </button>
                     </div>
@@ -215,7 +261,7 @@
             <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-6">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h4 class="text-sm font-bold text-amber-400">💰 ตั้งค่าราคาค่าบริการตามไซส์รถ</h4>
+                        <h4 class="text-sm font-bold text-[#e2c879]">💰 ตั้งค่าราคาค่าบริการตามไซส์รถ</h4>
                         <p class="text-xs text-zinc-500 mt-1">แก้ไขราคาและกดบันทึกด้านล่าง</p>
                     </div>
                 </div>
@@ -230,14 +276,18 @@
         <div id="section-promos" class="space-y-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-4 md:col-span-1">
-                    <h4 class="text-sm font-bold text-amber-400">➕ เพิ่มโค้ดส่วนลดใหม่</h4>
+                    <h4 class="text-sm font-bold text-[#e2c879]">➕ เพิ่มโค้ดส่วนลดใหม่</h4>
                     <div>
                         <label class="text-xs text-zinc-400">ชื่อโค้ด (พิมพ์ใหญ่)</label>
-                        <input type="text" id="new-promo-code" placeholder="เช่น SUMMER100" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-amber-500 uppercase font-bold">
+                        <input type="text" id="new-promo-code" placeholder="เช่น SUMMER100" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-[#cfae5d] uppercase font-bold">
                     </div>
                     <div>
                         <label class="text-xs text-zinc-400">มูลค่าส่วนลด (บาท)</label>
-                        <input type="number" id="new-promo-discount" placeholder="เช่น 100" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-amber-500">
+                        <input type="number" id="new-promo-discount" placeholder="เช่น 100" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-[#cfae5d]">
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400">วันหมดอายุ (เลือกได้ถ้ามี)</label>
+                        <input type="date" id="new-promo-expire" class="w-full mt-1.5 p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs outline-none focus:border-[#cfae5d]">
                     </div>
                     <button onclick="addNewPromoCode()" class="w-full gold-gradient hover:opacity-90 text-zinc-950 font-bold py-3.5 rounded-xl text-xs transition-all shadow-lg cursor-pointer">
                         บันทึกโค้ดส่วนลด
@@ -253,6 +303,154 @@
             </div>
         </div>
 
+        <!-- SECTION 6: MEMBER CARD SETTINGS -->
+        <div id="section-cards" class="space-y-6 hidden">
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-6">
+                <div>
+                    <h4 class="text-sm font-bold text-[#e2c879]">💳 ตั้งค่าระดับและดีไซน์บัตรสมาชิก (Member Tier Settings)</h4>
+                    <p class="text-xs text-zinc-500 mt-1">กำหนดแต้มขั้นต่ำ ชื่อระดับ และโทนสี gradient ของบัตรแต่ละระดับ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- WHITE CARD -->
+                    <div class="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h5 class="text-xs font-bold text-zinc-300">⚪ ระดับ 1 (สมาชิกทั่วไป)</h5>
+                        </div>
+                        
+                        <!-- CARD PREVIEW -->
+                        <div id="preview-white-card" class="p-4 rounded-2xl h-32 flex flex-col justify-between shadow-lg transition-all" style="background: linear-gradient(135deg, #27272a 0%, #18181b 100%); color: #ffffff;">
+                            <div class="flex justify-between items-start">
+                                <span class="text-[10px] uppercase font-bold tracking-widest opacity-80" id="preview-white-name">WHITE MEMBER</span>
+                                <span class="text-[9px] bg-white/10 px-2 py-0.5 rounded-md font-semibold">เริ่มต้น</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] opacity-70 block">คะแนนสะสม</span>
+                                <span class="text-base font-extrabold" id="preview-white-pts">0 แต้มขึ้นไป</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="text-zinc-400 block mb-1">ชื่อระดับบัตร</label>
+                                <input type="text" id="card-white-name" oninput="updateCardPreviews()" value="WHITE MEMBER" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-semibold outline-none focus:border-[#cfae5d]">
+                            </div>
+                            <div>
+                                <label class="text-zinc-400 block mb-1">คะแนนขั้นต่ำ (แต้ม)</label>
+                                <input type="number" id="card-white-points" oninput="updateCardPreviews()" value="0" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-[#cfae5d]">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-zinc-400 block mb-1">สีเริ่ม (Start)</label>
+                                    <input type="color" id="card-white-bgfrom" oninput="updateCardPreviews()" value="#27272a" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                                </div>
+                                <div>
+                                    <label class="text-zinc-400 block mb-1">สีจบ (End)</label>
+                                    <input type="color" id="card-white-bgto" oninput="updateCardPreviews()" value="#18181b" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-zinc-400 block mb-1">สีตัวอักษร</label>
+                                <input type="color" id="card-white-textcolor" oninput="updateCardPreviews()" value="#ffffff" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SILVER CARD -->
+                    <div class="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h5 class="text-xs font-bold text-zinc-300">🥈 ระดับ 2 (สมาชิกประจำ)</h5>
+                        </div>
+
+                        <!-- CARD PREVIEW -->
+                        <div id="preview-silver-card" class="p-4 rounded-2xl h-32 flex flex-col justify-between shadow-lg transition-all" style="background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); color: #0f172a;">
+                            <div class="flex justify-between items-start">
+                                <span class="text-[10px] uppercase font-bold tracking-widest opacity-80" id="preview-silver-name">SILVER VIP</span>
+                                <span class="text-[9px] bg-black/10 px-2 py-0.5 rounded-md font-semibold">VIP</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] opacity-70 block">คะแนนสะสม</span>
+                                <span class="text-base font-extrabold" id="preview-silver-pts">300 แต้มขึ้นไป</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="text-zinc-400 block mb-1">ชื่อระดับบัตร</label>
+                                <input type="text" id="card-silver-name" oninput="updateCardPreviews()" value="SILVER VIP" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-semibold outline-none focus:border-[#cfae5d]">
+                            </div>
+                            <div>
+                                <label class="text-zinc-400 block mb-1">คะแนนขั้นต่ำ (แต้ม)</label>
+                                <input type="number" id="card-silver-points" oninput="updateCardPreviews()" value="300" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-[#cfae5d]">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-zinc-400 block mb-1">สีเริ่ม (Start)</label>
+                                    <input type="color" id="card-silver-bgfrom" oninput="updateCardPreviews()" value="#e2e8f0" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                                </div>
+                                <div>
+                                    <label class="text-zinc-400 block mb-1">สีจบ (End)</label>
+                                    <input type="color" id="card-silver-bgto" oninput="updateCardPreviews()" value="#94a3b8" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-zinc-400 block mb-1">สีตัวอักษร</label>
+                                <input type="color" id="card-silver-textcolor" oninput="updateCardPreviews()" value="#0f172a" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GOLD CARD (STAINLESS GOLD N8 EDITION) -->
+                    <div class="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h5 class="text-xs font-bold text-[#e2c879]">🥇 ระดับ 3 (Stainless Gold)</h5>
+                        </div>
+
+                        <!-- CARD PREVIEW -->
+                        <div id="preview-gold-card" class="p-4 rounded-2xl h-32 flex flex-col justify-between shadow-lg transition-all" style="background: linear-gradient(135deg, #f5e4ab 0%, #a38238 100%); color: #18181b;">
+                            <div class="flex justify-between items-start">
+                                <span class="text-[10px] uppercase font-bold tracking-widest opacity-90" id="preview-gold-name">GOLD VIP</span>
+                                <span class="text-[9px] bg-black/15 px-2 py-0.5 rounded-md font-semibold">STAINLESS GOLD</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] opacity-80 block">คะแนนสะสม</span>
+                                <span class="text-base font-extrabold" id="preview-gold-pts">1,000 แต้มขึ้นไป</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div>
+                                <label class="text-zinc-400 block mb-1">ชื่อระดับบัตร</label>
+                                <input type="text" id="card-gold-name" oninput="updateCardPreviews()" value="GOLD VIP" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-semibold outline-none focus:border-[#cfae5d]">
+                            </div>
+                            <div>
+                                <label class="text-zinc-400 block mb-1">คะแนนขั้นต่ำ (แต้ม)</label>
+                                <input type="number" id="card-gold-points" oninput="updateCardPreviews()" value="1000" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-[#cfae5d]">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-zinc-400 block mb-1">สีเริ่ม (Start)</label>
+                                    <input type="color" id="card-gold-bgfrom" oninput="updateCardPreviews()" value="#f5e4ab" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                                </div>
+                                <div>
+                                    <label class="text-zinc-400 block mb-1">สีจบ (End)</label>
+                                    <input type="color" id="card-gold-bgto" oninput="updateCardPreviews()" value="#a38238" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-zinc-400 block mb-1">สีตัวอักษร</label>
+                                <input type="color" id="card-gold-textcolor" oninput="updateCardPreviews()" value="#18181b" class="w-full h-9 bg-zinc-950 border border-zinc-800 rounded-xl cursor-pointer p-1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="saveCardSettings()" class="w-full gold-gradient text-zinc-950 font-bold py-4 rounded-xl text-sm transition-all shadow-xl hover:opacity-90 cursor-pointer">
+                    บันทึกการตั้งค่าบัตรสมาชิกทั้งหมด
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -262,9 +460,10 @@
 
         let pendingAction = null;
         let currentReportMode = 'daily';
+        let allMembersData = [];
 
         function switchTab(tabName) {
-            const tabs = ['reports', 'customers', 'staff', 'prices', 'promos'];
+            const tabs = ['reports', 'members', 'customers', 'staff', 'prices', 'promos', 'cards'];
             tabs.forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).className = "py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer";
@@ -273,9 +472,11 @@
             document.getElementById(`tab-${tabName}`).className = "py-3 text-xs md:text-sm font-bold rounded-xl gold-gradient text-zinc-950 transition-all shadow-md cursor-pointer";
 
             if(tabName === 'reports') { loadReports(); checkSupabaseCapacity(); }
+            if(tabName === 'members') loadMembersList();
             if(tabName === 'staff') loadAdminStaffList();
             if(tabName === 'prices') loadSettingsAndPrices();
             if(tabName === 'promos') loadAdminPromoList();
+            if(tabName === 'cards') loadCardSettings();
         }
 
         function setReportMode(mode) {
@@ -298,12 +499,12 @@
             let currentMonth = today.substring(0, 7);
 
             if (currentReportMode === 'daily') {
-                container.innerHTML = `<input type="date" id="filter-date" value="${today}" onchange="loadReports()" class="bg-zinc-900 border border-zinc-800 text-xs text-white p-2.5 rounded-xl outline-none focus:border-amber-500 w-full md:w-48">`;
+                container.innerHTML = `<input type="date" id="filter-date" value="${today}" onchange="loadReports()" class="bg-zinc-900 border border-zinc-800 text-xs text-white p-2.5 rounded-xl outline-none focus:border-[#cfae5d] w-full md:w-48">`;
             } else if (currentReportMode === 'monthly') {
-                container.innerHTML = `<input type="month" id="filter-month" value="${currentMonth}" onchange="loadReports()" class="bg-zinc-900 border border-zinc-800 text-xs text-white p-2.5 rounded-xl outline-none focus:border-amber-500 w-full md:w-48">`;
+                container.innerHTML = `<input type="month" id="filter-month" value="${currentMonth}" onchange="loadReports()" class="bg-zinc-900 border border-zinc-800 text-xs text-white p-2.5 rounded-xl outline-none focus:border-[#cfae5d] w-full md:w-48">`;
             } else if (currentReportMode === 'yearly') {
                 container.innerHTML = `
-                    <select id="filter-year" onchange="loadReports()" class="bg-zinc-900 border border-zinc-800 text-xs text-white p-2.5 rounded-xl outline-none focus:border-amber-500 w-full md:w-48">
+                    <select id="filter-year" onchange="loadReports()" class="bg-zinc-900 border border-zinc-800 text-xs text-white p-2.5 rounded-xl outline-none focus:border-[#cfae5d] w-full md:w-48">
                         <option value="2026">2026</option>
                         <option value="2025">2025</option>
                         <option value="2024">2024</option>
@@ -327,7 +528,7 @@
                 capacityText.innerText = `มีข้อมูลในตาราง bookings ทั้งหมด ${totalRows.toLocaleString()} แถว`;
                 
                 if (totalRows > 500) {
-                    badge.className = "text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20";
+                    badge.className = "text-[10px] bg-amber-500/10 text-[#e2c879] px-2 py-0.5 rounded-full border border-[#cfae5d]/20";
                     badge.innerText = "ควรเคลียร์ข้อมูลเก่า";
                 } else {
                     badge.className = "text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20";
@@ -340,7 +541,7 @@
         }
 
         function confirmDeleteOldest30() {
-            pendingAction = async function() {
+            showModal('ยืนยันการลบข้อมูล', 'คุณต้องการลบข้อมูลรถ 30 คิวที่เก่าที่สุดใช่หรือไม่? การกระทำนี้ไม่สามารถกู้คืนได้', '⚠️', true, async () => {
                 try {
                     const { data: oldest, error: fetchErr } = await supabaseClient
                         .from('bookings')
@@ -368,8 +569,7 @@
                 } catch (err) {
                     showModal('ผิดพลาด', 'ไม่สามารถลบข้อมูลได้: ' + err.message, '❌');
                 }
-            };
-            showModal('ยืนยันการลบข้อมูล', 'คุณต้องการลบข้อมูลรถ 30 คิวที่เก่าที่สุดใช่หรือไม่? การกระทำนี้ไม่สามารถกู้คืนได้', '⚠️');
+            });
         }
 
         async function loadReports() {
@@ -417,11 +617,11 @@
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-zinc-900/50 transition-all border-b border-zinc-900";
                 
-                let beforeImgHtml = b.photo_before ? `<img src="${b.photo_before}" onclick="zoomPhoto('${b.photo_before}', 'Before: ${b.res_code}')" class="w-10 h-10 object-cover rounded-lg mx-auto cursor-pointer border border-zinc-700 hover:border-amber-400">` : `<span class="text-zinc-600 text-[10px]">ไม่มีรูป</span>`;
-                let afterImgHtml = b.photo_after ? `<img src="${b.photo_after}" onclick="zoomPhoto('${b.photo_after}', 'After: ${b.res_code}')" class="w-10 h-10 object-cover rounded-lg mx-auto cursor-pointer border border-zinc-700 hover:border-amber-400">` : `<span class="text-zinc-600 text-[10px]">ไม่มีรูป</span>`;
+                let beforeImgHtml = b.photo_before ? `<img src="${b.photo_before}" onclick="zoomPhoto('${b.photo_before}', 'Before: ${b.res_code}')" class="w-10 h-10 object-cover rounded-lg mx-auto cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<span class="text-zinc-600 text-[10px]">ไม่มีรูป</span>`;
+                let afterImgHtml = b.photo_after ? `<img src="${b.photo_after}" onclick="zoomPhoto('${b.photo_after}', 'After: ${b.res_code}')" class="w-10 h-10 object-cover rounded-lg mx-auto cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<span class="text-zinc-600 text-[10px]">ไม่มีรูป</span>`;
 
                 let currentStatus = b.status || 'รอคิว';
-                let statusBadgeStyle = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                let statusBadgeStyle = "bg-[#cfae5d]/10 text-[#e2c879] border-[#cfae5d]/20";
                 let statusIcon = "⏳";
                 if (currentStatus === 'กำลังดำเนินการ') {
                     statusBadgeStyle = "bg-blue-500/10 text-blue-400 border-blue-500/20";
@@ -441,7 +641,7 @@
 
                 tr.innerHTML = `
                     <td class="p-3">
-                        <span class="font-bold text-amber-400">${b.res_code || 'SURE-xxxx'}</span>
+                        <span class="font-bold text-[#e2c879]">${b.res_code || 'SURE-xxxx'}</span>
                         <p class="text-[10px] text-zinc-400">${b.date || '-'} ${b.time || b.booking_time || ''}</p>
                     </td>
                     <td class="p-3">
@@ -450,7 +650,7 @@
                     </td>
                     <td class="p-3">
                         <span class="text-white">${b.car_info} (${b.color || '-'})</span>
-                        <p class="text-[10px] text-amber-300 font-semibold">${b.plate}</p>
+                        <p class="text-[10px] text-[#e2c879] font-semibold">${b.plate}</p>
                     </td>
                     <td class="p-3 text-zinc-300">${b.service}</td>
                     <td class="p-3 text-center">${statusBadgeHtml}</td>
@@ -460,10 +660,103 @@
                             <div><span class="text-[9px] text-zinc-500 block">After</span>${afterImgHtml}</div>
                         </div>
                     </td>
-                    <td class="p-3 text-right font-bold text-amber-400 text-sm">฿${(Number(b.price) || 0).toLocaleString()}</td>
+                    <td class="p-3 text-right font-bold text-[#e2c879] text-sm">฿${(Number(b.price) || 0).toLocaleString()}</td>
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        async function loadMembersList() {
+            let tbody = document.getElementById('members-table-body');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-zinc-500 py-8">กำลังดึงข้อมูลสมาชิก...</td></tr>';
+
+            let { data: users, error } = await supabaseClient
+                .from('users')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error || !users) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-red-400 py-8">ไม่สามารถดึงข้อมูลสมาชิกได้</td></tr>';
+                return;
+            }
+
+            allMembersData = users;
+            document.getElementById('stat-total-members').innerText = `${users.length.toLocaleString()} คน`;
+            renderMembersTable(allMembersData);
+        }
+
+        function renderMembersTable(members) {
+            let tbody = document.getElementById('members-table-body');
+            tbody.innerHTML = '';
+
+            if (members.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-zinc-500 py-8">ไม่พบข้อมูลลูกค้า</td></tr>';
+                return;
+            }
+
+            members.forEach(u => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-900/50 transition-all border-b border-zinc-900";
+                
+                tr.innerHTML = `
+                    <td class="p-3">
+                        <span class="font-bold text-[#e2c879]">${u.customer_code || u.customerCode || 'CUS-xxxx'}</span>
+                        <p class="text-xs text-white font-medium">${u.name || 'ไม่ระบุชื่อ'}</p>
+                    </td>
+                    <td class="p-3 text-zinc-300">${u.phone || '-'}</td>
+                    <td class="p-3 text-center font-bold text-[#e2c879] text-sm">${(u.points || 0).toLocaleString()} แต้ม</td>
+                    <td class="p-3 text-center">
+                        <input type="number" id="input-pts-${u.customer_code}" value="${u.points || 0}" class="w-24 p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-center text-xs text-white font-bold outline-none focus:border-[#cfae5d]">
+                    </td>
+                    <td class="p-3 text-right">
+                        <button onclick="confirmUpdatePoints('${u.customer_code}', '${u.name || u.phone}')" class="gold-gradient text-zinc-950 px-3 py-1.5 rounded-lg text-xs font-bold shadow hover:opacity-90 transition-all cursor-pointer">
+                            💾 ยืนยันคะแนน
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterMemberList() {
+            let kw = document.getElementById('member-search-input').value.trim().toLowerCase();
+            let filtered = allMembersData.filter(m => 
+                (m.name && m.name.toLowerCase().includes(kw)) || 
+                (m.phone && m.phone.includes(kw)) ||
+                (m.customer_code && m.customer_code.toLowerCase().includes(kw))
+            );
+            renderMembersTable(filtered);
+        }
+
+        function confirmUpdatePoints(userId, userName) {
+            let newPtsInput = document.getElementById(`input-pts-${userId}`);
+            let newPts = parseInt(newPtsInput ? newPtsInput.value : 0);
+
+            if (isNaN(newPts) || newPts < 0) {
+                showModal('ข้อมูลไม่ถูกต้อง', 'กรุณาระบุคะแนนให้เป็นตัวเลขที่มากกว่าหรือเท่ากับ 0', '❌');
+                return;
+            }
+
+            showModal(
+                'ยืนยันการปรับเปลี่ยนคะแนน',
+                `คุณต้องการปรับคะแนนของลูกค้า "${userName}" เป็น ${newPts.toLocaleString()} แต้ม ใช่หรือไม่?`,
+                '⚠️',
+                true,
+                async () => {
+                    let { error } = await supabaseClient
+                        .from('users')
+                        .update({ points: newPts })
+                        .eq('customer_code', userId);
+
+                    if (error) {
+                        showModal('ผิดพลาด', 'ไม่สามารถบันทึกคะแนนได้: ' + error.message, '❌');
+                        return;
+                    }
+
+                    showModal('สำเร็จ', `อัปเดตคะแนนของ ${userName} เป็น ${newPts.toLocaleString()} แต้มเรียบร้อยแล้ว`, '✨');
+                    loadMembersList();
+                }
+            );
         }
 
         async function searchCustomerHistory() {
@@ -490,17 +783,17 @@
                 let div = document.createElement('div');
                 div.className = "p-4 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
                 
-                let beforeImg = b.photo_before ? `<img src="${b.photo_before}" onclick="zoomPhoto('${b.photo_before}', 'Before: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-amber-400">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
-                let afterImg = b.photo_after ? `<img src="${b.photo_after}" onclick="zoomPhoto('${b.photo_after}', 'After: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-amber-400">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
+                let beforeImg = b.photo_before ? `<img src="${b.photo_before}" onclick="zoomPhoto('${b.photo_before}', 'Before: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
+                let afterImg = b.photo_after ? `<img src="${b.photo_after}" onclick="zoomPhoto('${b.photo_after}', 'After: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
 
                 div.innerHTML = `
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-amber-400 text-sm">${b.name}</span>
-                            <span class="text-xs bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded-lg">โทร: ${b.phone}</span>
-                            <span class="text-xs bg-zinc-800 text-amber-400 px-2 py-0.5 rounded-lg">สถานะ: ${b.status || 'รอคิว'}</span>
+                            <span class="font-bold text-[#e2c879] text-sm">${b.name}</span>
+                            <span class="text-xs bg-[#cfae5d]/10 text-[#e2c879] px-2 py-0.5 rounded-lg">โทร: ${b.phone}</span>
+                            <span class="text-xs bg-zinc-800 text-[#e2c879] px-2 py-0.5 rounded-lg">สถานะ: ${b.status || 'รอคิว'}</span>
                         </div>
-                        <p class="text-xs text-zinc-300">รถ: <span class="text-white font-medium">${b.car_info}</span> | สี: ${b.color} | ทะเบียน: <span class="text-amber-400 font-bold">${b.plate}</span></p>
+                        <p class="text-xs text-zinc-300">รถ: <span class="text-white font-medium">${b.car_info}</span> | สี: ${b.color} | ทะเบียน: <span class="text-[#e2c879] font-bold">${b.plate}</span></p>
                         <p class="text-xs text-zinc-400">บริการ: ${b.service} | วันที่: ${b.date} | รหัส: ${b.res_code}</p>
                     </div>
                     <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
@@ -510,7 +803,7 @@
                         </div>
                         <div class="text-right pl-4 border-l border-zinc-800">
                             <span class="text-xs text-zinc-500 block">ยอดชำระ</span>
-                            <span class="text-lg font-extrabold text-amber-400">฿${(Number(b.price) || 0).toLocaleString()}</span>
+                            <span class="text-lg font-extrabold text-[#e2c879]">฿${(Number(b.price) || 0).toLocaleString()}</span>
                         </div>
                     </div>
                 `;
@@ -535,7 +828,7 @@
                 item.className = "flex justify-between items-center p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs";
                 item.innerHTML = `
                     <div>
-                        <span class="font-bold text-amber-400 text-sm">${s.name}</span> 
+                        <span class="font-bold text-[#e2c879] text-sm">${s.name}</span> 
                         <span class="text-zinc-300 ml-3">เบอร์โทรศัพท์ (Login): <strong class="text-white">${s.phone}</strong></span>
                     </div>
                     <button onclick="deleteStaff('${s.id}')" class="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 bg-red-950/40 rounded-lg border border-red-900/40 transition-all font-semibold cursor-pointer">ลบพนักงาน</button>
@@ -565,8 +858,8 @@
             loadAdminStaffList();
         }
 
-        async function deleteStaff(id) {
-            let { error } = await supabaseClient.from('staff').delete().eq('id', id);
+        async function deleteStaff(staffId) {
+            let { error } = await supabaseClient.from('staff').delete().eq('id', staffId);
             if (error) {
                 showModal('ผิดพลาด', 'ลบพนักงานไม่สำเร็จ: ' + error.message, '❌');
                 return;
@@ -584,7 +877,6 @@
                 let { data: bayData } = await supabaseClient.from('settings').select('*').eq('key', 'max_bays').maybeSingle();
                 document.getElementById('max-bays-input').value = bayData ? bayData.value : 2;
 
-                // Load service list definitions
                 let { data: listData } = await supabaseClient.from('settings').select('*').eq('key', 'service_list').maybeSingle();
                 currentServicesList = listData && listData.value ? JSON.parse(listData.value) : [
                     { key: 'p1', name: 'ล้างสีดูดฝุ่น' },
@@ -592,7 +884,6 @@
                     { key: 'p3', name: 'เคลือบแก้ว/สี' }
                 ];
 
-                // Load prices mapping
                 let { data: priceData } = await supabaseClient.from('settings').select('*').eq('key', 'service_prices').maybeSingle();
                 currentPricesData = priceData && priceData.value ? JSON.parse(priceData.value) : {
                     'S':  { p1: 150,  p2: 300,  p3: 1500 },
@@ -622,22 +913,18 @@
                 return;
             }
 
-            // Check if key already exists
             if (currentServicesList.some(s => s.key === keyInput)) {
                 showModal('ซ้ำ', 'รหัสบริการนี้มีอยู่ในระบบแล้ว กรุณาใช้รหัสอื่น', '⚠️');
                 return;
             }
 
-            // Add to service list
             currentServicesList.push({ key: keyInput, name: nameInput });
 
-            // Initialize default price 0 for all sizes
             ['S', 'M', 'L', 'XL'].forEach(size => {
                 if (!currentPricesData[size]) currentPricesData[size] = {};
                 currentPricesData[size][keyInput] = 0;
             });
 
-            // Save both to Supabase
             await supabaseClient.from('settings').upsert([{ key: 'service_list', value: JSON.stringify(currentServicesList) }], { onConflict: 'key' });
             await supabaseClient.from('settings').upsert([{ key: 'service_prices', value: JSON.stringify(currentPricesData) }], { onConflict: 'key' });
 
@@ -656,7 +943,6 @@
 
             currentServicesList = currentServicesList.filter(s => s.key !== keyToRemove);
 
-            // Remove from prices data
             ['S', 'M', 'L', 'XL'].forEach(size => {
                 if (currentPricesData[size]) {
                     delete currentPricesData[size][keyToRemove];
@@ -688,13 +974,13 @@
                                 <label class="text-zinc-400">${s.name} <span class="text-[10px] text-zinc-500">(${s.key})</span></label>
                                 ${size === 'S' ? `<button onclick="deleteCustomService('${s.key}')" class="text-[10px] text-red-400 hover:text-red-300 cursor-pointer">ลบ</button>` : ''}
                             </div>
-                            <input type="number" id="price_${size}_${s.key}" value="${val}" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-amber-500 text-xs">
+                            <input type="number" id="price_${size}_${s.key}" value="${val}" class="w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-[#cfae5d] text-xs">
                         </div>
                     `;
                 }).join('');
 
                 box.innerHTML = `
-                    <h5 class="font-bold text-amber-400 text-sm border-b border-zinc-800 pb-2">${sizeNames[size]}</h5>
+                    <h5 class="font-bold text-[#e2c879] text-sm border-b border-zinc-800 pb-2">${sizeNames[size]}</h5>
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
                         ${inputsHtml}
                     </div>
@@ -719,21 +1005,38 @@
             showModal('สำเร็จ', 'บันทึกราคาค่าบริการเรียบร้อยแล้ว', '✨');
         }
 
+        // --- PROMO CODES WITH EXPIRATION DATE ---
         async function loadAdminPromoList() {
             let container = document.getElementById('admin-promo-list');
             let { data } = await supabaseClient.from('settings').select('*').eq('key', 'promo_codes').maybeSingle();
-            let promos = data && data.value ? JSON.parse(data.value) : { 'SURE88': 50 };
+            let promos = data && data.value ? JSON.parse(data.value) : { 'SURE88': { discount: 50, expire: '' } };
 
             container.innerHTML = '';
             let keys = Object.keys(promos);
             if (keys.length === 0) { container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-6">ยังไม่มีโค้ดส่วนลด</p>'; return; }
 
+            const today = new Date().toISOString().split('T')[0];
+
             keys.forEach(code => {
-                let discount = promos[code];
+                let itemData = promos[code];
+                let discount = typeof itemData === 'object' ? itemData.discount : itemData;
+                let expireDate = typeof itemData === 'object' ? itemData.expire : '';
+                
+                let isExpired = expireDate && expireDate < today;
+                let statusBadge = isExpired 
+                    ? '<span class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-md font-bold">หมดอายุแล้ว</span>' 
+                    : (expireDate ? `<span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-md">ใช้ได้ถึง ${expireDate}</span>` : '<span class="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-md">ไม่มีวันหมดอายุ</span>');
+
                 let item = document.createElement('div');
                 item.className = "flex justify-between items-center p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-xs";
                 item.innerHTML = `
-                    <div><span class="font-bold text-amber-400 text-sm">${code}</span> <span class="text-zinc-300 ml-3">ส่วนลด: <strong class="text-white">${discount} บาท</strong></span></div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-[#e2c879] text-sm">${code}</span>
+                            ${statusBadge}
+                        </div>
+                        <p class="text-zinc-300">ส่วนลด: <strong class="text-white">${discount} บาท</strong></p>
+                    </div>
                     <button onclick="deletePromoCode('${code}')" class="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 bg-red-950/40 rounded-lg border border-red-900/40 font-semibold cursor-pointer">ลบโค้ด</button>
                 `;
                 container.appendChild(item);
@@ -743,15 +1046,23 @@
         async function addNewPromoCode() {
             const codeInput = document.getElementById('new-promo-code').value.trim().toUpperCase();
             const discountInput = parseInt(document.getElementById('new-promo-discount').value);
-            if (!codeInput || isNaN(discountInput)) { showModal('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ถูกต้อง', '❌'); return; }
+            const expireInput = document.getElementById('new-promo-expire').value;
+
+            if (!codeInput || isNaN(discountInput)) { showModal('แจ้งเตือน', 'กรุณากรอกรหัสโค้ดและมูลค่าส่วนลดให้ถูกต้อง', '❌'); return; }
 
             let { data } = await supabaseClient.from('settings').select('*').eq('key', 'promo_codes').maybeSingle();
             let promos = data && data.value ? JSON.parse(data.value) : {};
-            promos[codeInput] = discountInput;
+            
+            promos[codeInput] = {
+                discount: discountInput,
+                expire: expireInput || ''
+            };
 
             await supabaseClient.from('settings').upsert([{ key: 'promo_codes', value: JSON.stringify(promos) }], { onConflict: 'key' });
             document.getElementById('new-promo-code').value = '';
             document.getElementById('new-promo-discount').value = '';
+            document.getElementById('new-promo-expire').value = '';
+            
             showModal('สำเร็จ', `เพิ่มโค้ด ${codeInput} สำเร็จ`, '✨');
             loadAdminPromoList();
         }
@@ -766,6 +1077,91 @@
             showModal('ลบสำเร็จ', `ลบโค้ด ${codeKey} แล้ว`, '🗑️');
         }
 
+        // --- MEMBER CARD SETTINGS MANAGEMENT ---
+        async function loadCardSettings() {
+            try {
+                let { data } = await supabaseClient.from('settings').select('*').eq('key', 'card_settings').maybeSingle();
+                let cardData = data && data.value ? JSON.parse(data.value) : {
+                    white: { name: 'WHITE MEMBER', min_points: 0, bg_from: '#27272a', bg_to: '#18181b', text_color: '#ffffff' },
+                    silver: { name: 'SILVER VIP', min_points: 300, bg_from: '#e2e8f0', bg_to: '#94a3b8', text_color: '#0f172a' },
+                    gold: { name: 'GOLD VIP', min_points: 1000, bg_from: '#f5e4ab', bg_to: '#a38238', text_color: '#18181b' }
+                };
+
+                document.getElementById('card-white-name').value = cardData.white?.name || 'WHITE MEMBER';
+                document.getElementById('card-white-points').value = cardData.white?.min_points ?? 0;
+                document.getElementById('card-white-bgfrom').value = cardData.white?.bg_from || '#27272a';
+                document.getElementById('card-white-bgto').value = cardData.white?.bg_to || '#18181b';
+                document.getElementById('card-white-textcolor').value = cardData.white?.text_color || '#ffffff';
+
+                document.getElementById('card-silver-name').value = cardData.silver?.name || 'SILVER VIP';
+                document.getElementById('card-silver-points').value = cardData.silver?.min_points ?? 300;
+                document.getElementById('card-silver-bgfrom').value = cardData.silver?.bg_from || '#e2e8f0';
+                document.getElementById('card-silver-bgto').value = cardData.silver?.bg_to || '#94a3b8';
+                document.getElementById('card-silver-textcolor').value = cardData.silver?.text_color || '#0f172a';
+
+                document.getElementById('card-gold-name').value = cardData.gold?.name || 'GOLD VIP';
+                document.getElementById('card-gold-points').value = cardData.gold?.min_points ?? 1000;
+                document.getElementById('card-gold-bgfrom').value = cardData.gold?.bg_from || '#f5e4ab';
+                document.getElementById('card-gold-bgto').value = cardData.gold?.bg_to || '#a38238';
+                document.getElementById('card-gold-textcolor').value = cardData.gold?.text_color || '#18181b';
+
+                updateCardPreviews();
+            } catch(e) { console.error(e); }
+        }
+
+        function updateCardPreviews() {
+            const tiers = ['white', 'silver', 'gold'];
+            tiers.forEach(t => {
+                const name = document.getElementById(`card-${t}-name`).value;
+                const pts = document.getElementById(`card-${t}-points`).value;
+                const bgFrom = document.getElementById(`card-${t}-bgfrom`).value;
+                const bgTo = document.getElementById(`card-${t}-bgto`).value;
+                const textColor = document.getElementById(`card-${t}-textcolor`).value;
+
+                const cardEl = document.getElementById(`preview-${t}-card`);
+                const nameEl = document.getElementById(`preview-${t}-name`);
+                const ptsEl = document.getElementById(`preview-${t}-pts`);
+
+                if (cardEl) {
+                    cardEl.style.background = `linear-gradient(135deg, ${bgFrom} 0%, ${bgTo} 100%)`;
+                    cardEl.style.color = textColor;
+                }
+                if (nameEl) nameEl.innerText = name || t.toUpperCase();
+                if (ptsEl) ptsEl.innerText = `${parseInt(pts || 0).toLocaleString()} แต้มขึ้นไป`;
+            });
+        }
+
+        async function saveCardSettings() {
+            let cardData = {
+                white: {
+                    name: document.getElementById('card-white-name').value.trim(),
+                    min_points: parseInt(document.getElementById('card-white-points').value) || 0,
+                    bg_from: document.getElementById('card-white-bgfrom').value,
+                    bg_to: document.getElementById('card-white-bgto').value,
+                    text_color: document.getElementById('card-white-textcolor').value
+                },
+                silver: {
+                    name: document.getElementById('card-silver-name').value.trim(),
+                    min_points: parseInt(document.getElementById('card-silver-points').value) || 300,
+                    bg_from: document.getElementById('card-silver-bgfrom').value,
+                    bg_to: document.getElementById('card-silver-bgto').value,
+                    text_color: document.getElementById('card-silver-textcolor').value
+                },
+                gold: {
+                    name: document.getElementById('card-gold-name').value.trim(),
+                    min_points: parseInt(document.getElementById('card-gold-points').value) || 1000,
+                    bg_from: document.getElementById('card-gold-bgfrom').value,
+                    bg_to: document.getElementById('card-gold-bgto').value,
+                    text_color: document.getElementById('card-gold-textcolor').value
+                }
+            };
+
+            let { error } = await supabaseClient.from('settings').upsert([{ key: 'card_settings', value: JSON.stringify(cardData) }], { onConflict: 'key' });
+            if(error) { showModal('ผิดพลาด', error.message, '❌'); return; }
+            showModal('สำเร็จ', 'บันทึกการตั้งค่าบัตรสมาชิกเรียบร้อยแล้ว!', '✨');
+            updateCardPreviews();
+        }
+
         function zoomPhoto(url, caption) {
             document.getElementById('zoomed-photo').src = url;
             document.getElementById('zoomed-caption').innerText = caption;
@@ -774,27 +1170,37 @@
 
         function closePhotoModal() { document.getElementById('photo-modal').classList.add('hidden'); }
 
-        function showModal(title, message, icon = '⚠️') {
+        function showModal(title, message, icon = '⚠️', showCancel = false, confirmCallback = null) {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-message').innerText = message;
             document.getElementById('modal-icon').innerText = icon;
+            
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            if (showCancel) {
+                cancelBtn.classList.remove('hidden');
+            } else {
+                cancelBtn.classList.add('hidden');
+            }
+
+            pendingAction = confirmCallback;
+
             const modal = document.getElementById('custom-modal');
             const box = document.getElementById('modal-box');
             modal.classList.remove('hidden');
             setTimeout(() => { box.classList.remove('scale-95', 'opacity-0'); box.classList.add('scale-100', 'opacity-100'); }, 10);
         }
 
-        function closeModal() {
+        function closeModal(isConfirmed = false) {
             const modal = document.getElementById('custom-modal');
             const box = document.getElementById('modal-box');
             box.classList.remove('scale-100', 'opacity-100');
             box.classList.add('scale-95', 'opacity-0');
             setTimeout(() => { 
                 modal.classList.add('hidden'); 
-                if (pendingAction) { 
+                if (isConfirmed && pendingAction) { 
                     pendingAction(); 
-                    pendingAction = null; 
-                } 
+                }
+                pendingAction = null; 
             }, 200);
         }
 
