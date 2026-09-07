@@ -48,9 +48,17 @@
         
         <!-- HEADER -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-zinc-800 pb-6 gap-4">
-            <div>
-                <span class="text-2xl md:text-3xl font-extrabold tracking-wider gold-text-gradient">SURE 88 CAR WASH</span>
-                <p class="text-xs text-zinc-400 uppercase tracking-widest mt-1">Admin Control Center (Stainless Gold Edition)</p>
+            <div class="flex items-center gap-3 w-full md:w-auto justify-between">
+                <div>
+                    <span class="text-2xl md:text-3xl font-extrabold tracking-wider gold-text-gradient">SURE 88 CAR WASH</span>
+                    <p class="text-xs text-zinc-400 uppercase tracking-widest mt-1">Admin Control Center (Stainless Gold Edition)</p>
+                </div>
+                <!-- MOBILE HAMBURGER BUTTON -->
+                <button onclick="toggleMobileMenu()" class="md:hidden text-zinc-300 hover:text-white p-2 rounded-xl bg-zinc-950 border border-zinc-800 focus:outline-none cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
             </div>
             <div class="flex items-center gap-3">
                 <span class="text-xs bg-[#cfae5d]/10 text-[#e2c879] border border-[#cfae5d]/20 px-4 py-2 rounded-2xl font-semibold flex items-center gap-2">
@@ -60,14 +68,16 @@
         </div>
 
         <!-- NAVIGATION TABS -->
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 bg-zinc-950 p-2 rounded-2xl mb-8 border border-zinc-800 text-center">
+        <div id="nav-tabs-container" class="hidden md:grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-2 bg-zinc-950 p-2 rounded-2xl mb-8 border border-zinc-800 text-center">
             <button onclick="switchTab('reports')" id="tab-reports" class="py-3 text-xs md:text-sm font-bold rounded-xl gold-gradient text-zinc-950 transition-all shadow-md cursor-pointer">📊 รายงานยอดขาย</button>
             <button onclick="switchTab('members')" id="tab-members" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">👥 ข้อมูลลูกค้า & คะแนน</button>
             <button onclick="switchTab('customers')" id="tab-customers" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">🔍 ประวัติลูกค้า</button>
             <button onclick="switchTab('staff')" id="tab-staff" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">👨‍💼 จัดการพนักงาน</button>
             <button onclick="switchTab('prices')" id="tab-prices" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">💰 ราคาและช่องบริการ</button>
             <button onclick="switchTab('promos')" id="tab-promos" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">🎟️ โค้ดส่วนลด</button>
+            <button onclick="switchTab('pointsettings')" id="tab-pointsettings" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">⭐ ตั้งค่าแลกแต้ม</button>
             <button onclick="switchTab('cards')" id="tab-cards" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">💳 ตั้งค่าบัตรสมาชิก</button>
+            <button onclick="switchTab('ownerbank')" id="tab-ownerbank" class="py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer">🏦 บัญชีร้าน/พร้อมเพย์</button>
         </div>
 
         <!-- SECTION 1: REPORTS -->
@@ -303,6 +313,31 @@
             </div>
         </div>
 
+        <!-- NEW SECTION: POINT REDEMPTION SETTINGS -->
+        <div id="section-pointsettings" class="space-y-6 hidden">
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-6 max-w-xl mx-auto">
+                <div>
+                    <h4 class="text-sm font-bold text-[#e2c879]">⭐ ตั้งค่าเงื่อนไขการใช้คะแนนแลกส่วนลด</h4>
+                    <p class="text-xs text-zinc-500 mt-1">กำหนดว่าลูกค้าต้องใช้กี่คะแนนเพื่อแลกรับส่วนลดกี่บาท (เช่น 200 คะแนน แลก 50 บาท)</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1">จำนวนคะแนนที่ใช้แลก (แต้ม)</label>
+                        <input type="number" id="pointsRequired" value="200" class="w-full p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-[#cfae5d] text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs text-zinc-400 block mb-1">มูลค่าส่วนลดที่ได้รับ (บาท)</label>
+                        <input type="number" id="discountAmount" value="50" class="w-full p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-[#cfae5d] text-sm">
+                    </div>
+                </div>
+
+                <button onclick="savePointSettings()" class="w-full gold-gradient text-zinc-950 font-bold py-4 rounded-xl text-sm transition-all shadow-xl hover:opacity-90 cursor-pointer">
+                    💾 บันทึกตั้งค่าเงื่อนไขแลกแต้ม
+                </button>
+            </div>
+        </div>
+
         <!-- SECTION 6: MEMBER CARD SETTINGS -->
         <div id="section-cards" class="space-y-6 hidden">
             <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-6">
@@ -400,7 +435,7 @@
                         </div>
                     </div>
 
-                    <!-- GOLD CARD (STAINLESS GOLD N8 EDITION) -->
+                    <!-- GOLD CARD -->
                     <div class="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
                         <div class="flex justify-between items-center">
                             <h5 class="text-xs font-bold text-[#e2c879]">🥇 ระดับ 3 (Stainless Gold)</h5>
@@ -451,6 +486,35 @@
             </div>
         </div>
 
+        <!-- NEW SECTION 7: OWNER BANK / PROMPTPAY SETTINGS -->
+        <div id="section-ownerbank" class="space-y-6 hidden">
+            <div class="bg-zinc-950 p-6 rounded-2xl border border-zinc-800 space-y-6 max-w-xl mx-auto">
+                <div>
+                    <h4 class="text-sm font-bold text-[#e2c879]">🏦 ตั้งค่าบัญชีธนาคารและพร้อมเพย์เจ้าของร้าน</h4>
+                    <p class="text-xs text-zinc-500 mt-1">ข้อมูลนี้จะถูกส่งไปแสดงผลที่หน้า Staff (หน้างาน) เพื่อให้พนักงานใช้แจ้งยอดโอนหรือสแกน QR จ่ายเงินกับลูกค้า</p>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div>
+                        <label class="text-zinc-400 block mb-1">ชื่อธนาคาร</label>
+                        <input type="text" id="owner-bank-name" placeholder="เช่น กสิกรไทย (KBank)" class="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white font-semibold outline-none focus:border-[#cfae5d]">
+                    </div>
+                    <div>
+                        <label class="text-zinc-400 block mb-1">ชื่อบัญชีเจ้าของร้าน</label>
+                        <input type="text" id="owner-account-name" placeholder="เช่น นายสมชาย ใจดี" class="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white font-semibold outline-none focus:border-[#cfae5d]">
+                    </div>
+                    <div>
+                        <label class="text-zinc-400 block mb-1">เลขที่บัญชี หรือ เบอร์พร้อมเพย์ (สำหรับสร้าง QR Code)</label>
+                        <input type="text" id="owner-promptpay-number" placeholder="เช่น 0891234567 หรือ 1234567890" class="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white font-bold outline-none focus:border-[#cfae5d]">
+                    </div>
+                </div>
+
+                <button onclick="saveOwnerBankSettings()" class="w-full gold-gradient text-zinc-950 font-bold py-4 rounded-xl text-sm transition-all shadow-xl hover:opacity-90 cursor-pointer">
+                    💾 บันทึกข้อมูลบัญชีและพร้อมเพย์
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -462,8 +526,19 @@
         let currentReportMode = 'daily';
         let allMembersData = [];
 
+        function toggleMobileMenu() {
+            const navTabs = document.getElementById('nav-tabs-container');
+            if (navTabs.classList.contains('hidden')) {
+                navTabs.classList.remove('hidden');
+                navTabs.classList.add('grid', 'grid-cols-1', 'gap-2');
+            } else {
+                navTabs.classList.add('hidden');
+                navTabs.classList.remove('grid', 'grid-cols-1', 'gap-2');
+            }
+        }
+
         function switchTab(tabName) {
-            const tabs = ['reports', 'members', 'customers', 'staff', 'prices', 'promos', 'cards'];
+            const tabs = ['reports', 'members', 'customers', 'staff', 'prices', 'promos', 'pointsettings', 'cards', 'ownerbank'];
             tabs.forEach(t => {
                 document.getElementById(`section-${t}`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).className = "py-3 text-xs md:text-sm font-bold rounded-xl text-zinc-400 hover:text-white transition-all cursor-pointer";
@@ -471,12 +546,20 @@
             document.getElementById(`section-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).className = "py-3 text-xs md:text-sm font-bold rounded-xl gold-gradient text-zinc-950 transition-all shadow-md cursor-pointer";
 
+            if (window.innerWidth < 768) {
+                const navTabs = document.getElementById('nav-tabs-container');
+                navTabs.classList.add('hidden');
+                navTabs.classList.remove('grid', 'grid-cols-1');
+            }
+
             if(tabName === 'reports') { loadReports(); checkSupabaseCapacity(); }
             if(tabName === 'members') loadMembersList();
             if(tabName === 'staff') loadAdminStaffList();
             if(tabName === 'prices') loadSettingsAndPrices();
             if(tabName === 'promos') loadAdminPromoList();
+            if(tabName === 'pointsettings') loadPointSettings();
             if(tabName === 'cards') loadCardSettings();
+            if(tabName === 'ownerbank') loadOwnerBankSettings();
         }
 
         function setReportMode(mode) {
@@ -617,8 +700,14 @@
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-zinc-900/50 transition-all border-b border-zinc-900";
                 
-                let beforeImgHtml = b.photo_before ? `<img src="${b.photo_before}" onclick="zoomPhoto('${b.photo_before}', 'Before: ${b.res_code}')" class="w-10 h-10 object-cover rounded-lg mx-auto cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<span class="text-zinc-600 text-[10px]">ไม่มีรูป</span>`;
-                let afterImgHtml = b.photo_after ? `<img src="${b.photo_after}" onclick="zoomPhoto('${b.photo_after}', 'After: ${b.res_code}')" class="w-10 h-10 object-cover rounded-lg mx-auto cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<span class="text-zinc-600 text-[10px]">ไม่มีรูป</span>`;
+                let beforeList = parsePhotos(b.photo_before);
+                let afterList = parsePhotos(b.photo_after);
+
+                let beforeImgUrl = beforeList.length > 0 ? beforeList[0] : '';
+                let afterImgUrl = afterList.length > 0 ? afterList[0] : '';
+
+                let beforeImg = beforeImgUrl ? `<img src="${beforeImgUrl}" onclick="zoomPhoto('${beforeImgUrl}', 'Before: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
+                let afterImg = afterImgUrl ? `<img src="${afterImgUrl}" onclick="zoomPhoto('${afterImgUrl}', 'After: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
 
                 let currentStatus = b.status || 'รอคิว';
                 let statusBadgeStyle = "bg-[#cfae5d]/10 text-[#e2c879] border-[#cfae5d]/20";
@@ -656,8 +745,8 @@
                     <td class="p-3 text-center">${statusBadgeHtml}</td>
                     <td class="p-3 text-center">
                         <div class="flex items-center justify-center gap-2">
-                            <div><span class="text-[9px] text-zinc-500 block">Before</span>${beforeImgHtml}</div>
-                            <div><span class="text-[9px] text-zinc-500 block">After</span>${afterImgHtml}</div>
+                            <div><span class="text-[9px] text-zinc-500 block">Before</span>${beforeImg}</div>
+                            <div><span class="text-[9px] text-zinc-500 block">After</span>${afterImg}</div>
                         </div>
                     </td>
                     <td class="p-3 text-right font-bold text-[#e2c879] text-sm">฿${(Number(b.price) || 0).toLocaleString()}</td>
@@ -783,8 +872,14 @@
                 let div = document.createElement('div');
                 div.className = "p-4 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
                 
-                let beforeImg = b.photo_before ? `<img src="${b.photo_before}" onclick="zoomPhoto('${b.photo_before}', 'Before: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
-                let afterImg = b.photo_after ? `<img src="${b.photo_after}" onclick="zoomPhoto('${b.photo_after}', 'After: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
+                let beforeList = parsePhotos(b.photo_before);
+                let afterList = parsePhotos(b.photo_after);
+
+                let beforeImgUrl = beforeList.length > 0 ? beforeList[0] : '';
+                let afterImgUrl = afterList.length > 0 ? afterList[0] : '';
+
+                let beforeImg = beforeImgUrl ? `<img src="${beforeImgUrl}" onclick="zoomPhoto('${beforeImgUrl}', 'Before: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
+                let afterImg = afterImgUrl ? `<img src="${afterImgUrl}" onclick="zoomPhoto('${afterImgUrl}', 'After: ${b.plate}')" class="w-16 h-16 object-cover rounded-xl cursor-pointer border border-zinc-700 hover:border-[#cfae5d]">` : `<div class="w-16 h-16 bg-zinc-950 rounded-xl flex items-center justify-center text-[10px] text-zinc-600">ไม่มีรูป</div>`;
 
                 div.innerHTML = `
                     <div class="space-y-1">
@@ -868,7 +963,6 @@
             showModal('ลบสำเร็จ', 'ลบรายชื่อพนักงานออกจากระบบแล้ว', '🗑️');
         }
 
-        // --- SETTINGS & DYNAMIC SERVICES MANAGEMENT ---
         let currentServicesList = [];
         let currentPricesData = {};
 
@@ -1005,7 +1099,6 @@
             showModal('สำเร็จ', 'บันทึกราคาค่าบริการเรียบร้อยแล้ว', '✨');
         }
 
-        // --- PROMO CODES WITH EXPIRATION DATE ---
         async function loadAdminPromoList() {
             let container = document.getElementById('admin-promo-list');
             let { data } = await supabaseClient.from('settings').select('*').eq('key', 'promo_codes').maybeSingle();
@@ -1077,7 +1170,42 @@
             showModal('ลบสำเร็จ', `ลบโค้ด ${codeKey} แล้ว`, '🗑️');
         }
 
-        // --- MEMBER CARD SETTINGS MANAGEMENT ---
+        async function loadPointSettings() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('settings')
+                    .select('*')
+                    .eq('key', 'point_discount_rule')
+                    .maybeSingle();
+
+                if (data) {
+                    document.getElementById('pointsRequired').value = data.points || 200;
+                    document.getElementById('discountAmount').value = data.value || 50;
+                }
+            } catch (err) {
+                console.log('ยังไม่มีการตั้งค่า หรือใช้ค่าเริ่มต้น', err);
+            }
+        }
+
+        async function savePointSettings() {
+            const points = document.getElementById('pointsRequired').value;
+            const value = document.getElementById('discountAmount').value;
+
+            const { error } = await supabaseClient
+                .from('settings')
+                .upsert({ 
+                    key: 'point_discount_rule', 
+                    points: parseInt(points), 
+                    value: parseInt(value) 
+                }, { onConflict: 'key' });
+
+            if (error) {
+                showModal('ผิดพลาด', 'เกิดข้อผิดพลาดในการบันทึก: ' + error.message, '❌');
+            } else {
+                showModal('สำเร็จ', `บันทึกการตั้งค่าคะแนนสะสมสำเร็จ (คะแนนครบ ${points} แลก ${value} บาท)`, '✨');
+            }
+        }
+
         async function loadCardSettings() {
             try {
                 let { data } = await supabaseClient.from('settings').select('*').eq('key', 'card_settings').maybeSingle();
@@ -1162,6 +1290,38 @@
             updateCardPreviews();
         }
 
+        async function loadOwnerBankSettings() {
+            try {
+                let { data } = await supabaseClient.from('settings').select('*').eq('key', 'owner_bank_account').maybeSingle();
+                if (data && data.value) {
+                    let bankInfo = JSON.parse(data.value);
+                    document.getElementById('owner-bank-name').value = bankInfo.bankName || '';
+                    document.getElementById('owner-account-name').value = bankInfo.accountName || '';
+                    document.getElementById('owner-promptpay-number').value = bankInfo.promptpayNumber || '';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function saveOwnerBankSettings() {
+            let bankName = document.getElementById('owner-bank-name').value.trim();
+            let accountName = document.getElementById('owner-account-name').value.trim();
+            let promptpayNumber = document.getElementById('owner-promptpay-number').value.trim();
+
+            if (!promptpayNumber) {
+                showModal('แจ้งเตือน', 'กรุณาระบุเลขพร้อมเพย์ หรือเลขที่บัญชี', '❌');
+                return;
+            }
+
+            let bankData = { bankName, accountName, promptpayNumber };
+
+            let { error } = await supabaseClient.from('settings').upsert([{ key: 'owner_bank_account', value: JSON.stringify(bankData) }], { onConflict: 'key' });
+            if (error) {
+                showModal('ผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message, '❌');
+                return;
+            }
+            showModal('สำเร็จ', 'บันทึกข้อมูลบัญชีเจ้าของร้านและพร้อมเพย์เรียบร้อยแล้ว', '✨');
+        }
+
         function zoomPhoto(url, caption) {
             document.getElementById('zoomed-photo').src = url;
             document.getElementById('zoomed-caption').innerText = caption;
@@ -1208,7 +1368,19 @@
             renderFilterControls();
             loadReports();
             checkSupabaseCapacity();
+            loadPointSettings();
         };
+
+        function parsePhotos(photoData) {
+            if (!photoData) return [];
+            if (Array.isArray(photoData)) return photoData;
+            try {
+                const parsed = JSON.parse(photoData);
+                if (Array.isArray(parsed)) return parsed;
+                return [parsed];
+            } catch(e) {}
+            return [photoData];
+        }
     </script>
 </body>
 </html>
